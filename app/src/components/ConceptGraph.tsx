@@ -173,10 +173,12 @@ export default function ConceptGraph({
 
   // 加载图谱数据
   useEffect(() => {
-    setLoading(true)
-    setError(null)
-    Promise.all([getGraphNodes(), getGraphLinks()])
-      .then(([nodesData, linksData]) => {
+    ;(async () => {
+      setLoading(true)
+      setError(null)
+      try {
+        const [nodesData, linksData] = await Promise.all([getGraphNodes(), getGraphLinks()])
+
         // 基础结构：先分配学科基础色 + 半径（不做最终染色）
         const baseNodes: SimNode[] = (nodesData || []).map((n: GraphNodeData) => ({
           ...(n as SimNode),
@@ -243,12 +245,13 @@ export default function ConceptGraph({
 
         setNodes(richNodes)
         setLinks(filteredLinks as unknown as GraphLinkData[])
-      })
-      .catch((err) => {
+      } catch (err) {
         setError('加载图谱数据失败')
         console.error('Failed to load graph data:', err)
-      })
-      .finally(() => setLoading(false))
+      } finally {
+        setLoading(false)
+      }
+    })()
   }, [discipline])
 
   // 测量容器尺寸

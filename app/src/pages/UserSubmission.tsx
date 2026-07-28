@@ -60,9 +60,13 @@ export default function UserSubmission() {
   const [showAISettings, setShowAISettings] = useState(false)
 
   useEffect(() => {
-    getAIProviders()
-      .then(setProviders)
-      .catch(() => {})
+    ;(async () => {
+      try {
+        setProviders(await getAIProviders())
+      } catch {
+        // 获取提供商列表失败时静默忽略
+      }
+    })()
   }, [])
 
   const handlePairChange = (field: keyof typeof emptyPairForm, value: string) => {

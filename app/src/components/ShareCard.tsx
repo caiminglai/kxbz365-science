@@ -47,7 +47,7 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
 
 // 等待浏览器字体全部加载完毕，确保 Canvas 用的是正确字体而不是回退字体
 async function waitForFonts(timeoutMs = 3000) {
-  const fontsApi = (document as Document & { fonts?: any })?.fonts
+  const fontsApi = (document as Document & { fonts?: { ready: Promise<void> } })?.fonts
   if (!fontsApi) return
   try {
     // 1) 等待 CSS 中已声明的字体全部就绪

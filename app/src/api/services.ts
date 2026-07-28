@@ -223,8 +223,8 @@ export async function getGraphData(): Promise<GraphDataResponse> {
 /**
  * 获取系统统计数据（词条总数、学科数等）
  */
-export async function getStats() {
-  return apiClient.get(API_ENDPOINTS.stats)
+export async function getStats(): Promise<Record<string, unknown>> {
+  return apiClient.get<Record<string, unknown>>(API_ENDPOINTS.stats)
 }
 
 // ============= 概念对比 =============

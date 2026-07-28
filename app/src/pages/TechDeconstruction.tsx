@@ -606,7 +606,14 @@ function CareerGuideSection() {
                 project:
                   d.project && d.project.steps
                     ? typeof d.project.steps === 'string'
-                      ? JSON.parse(d.project.steps)
+                      ? (() => {
+                          try {
+                            return JSON.parse(d.project.steps)
+                          } catch {
+                            console.warn('无法解析 project.steps:', d.project.steps)
+                            return []
+                          }
+                        })()
                       : d.project.steps
                     : [],
               }) as HighPayJob,

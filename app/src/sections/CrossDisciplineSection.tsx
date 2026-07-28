@@ -1,32 +1,32 @@
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { getComparisons } from '@/api/services';
-import type { Comparison } from '@/api/types';
+import { useEffect, useState } from 'react'
+import { motion } from 'framer-motion'
+import { getComparisons } from '@/api/services'
+import type { Comparison } from '@/api/types'
 
 export default function CrossDisciplineSection() {
-  const [loading, setLoading] = useState(true);
-  const [comparisons, setComparisons] = useState<Comparison[]>([]);
+  const [loading, setLoading] = useState(true)
+  const [comparisons, setComparisons] = useState<Comparison[]>([])
 
   useEffect(() => {
-    let mounted = true;
+    let mounted = true
     const load = async () => {
       try {
-        const data = await getComparisons();
+        const data = await getComparisons()
         if (mounted) {
-          const list = Array.isArray(data) ? data : [];
-          setComparisons(list);
+          const list = Array.isArray(data) ? data : []
+          setComparisons(list)
         }
       } catch {
-        if (mounted) setComparisons([]);
+        if (mounted) setComparisons([])
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) setLoading(false)
       }
-    };
-    load();
+    }
+    load()
     return () => {
-      mounted = false;
-    };
-  }, []);
+      mounted = false
+    }
+  }, [])
 
   return (
     <section className="py-12 sm:py-16 px-4 lg:px-6">
@@ -78,11 +78,12 @@ export default function CrossDisciplineSection() {
                   </h4>
                   <div className="space-y-2 mb-4">
                     <div className="flex items-start gap-2">
-                      <span className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: '#D4853B' }} />
+                      <span
+                        className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
+                        style={{ backgroundColor: '#D4853B' }}
+                      />
                       <div>
-                        <span className="text-xs text-warm-text">
-                          {c.concept_a_discipline}
-                        </span>
+                        <span className="text-xs text-warm-text">{c.concept_a_discipline}</span>
                         <div className="text-sm text-warm-dark">
                           <span className="font-semibold">{c.concept_a_name}</span>
                           <span className="text-warm-text"> - {c.concept_a_plain}</span>
@@ -90,11 +91,12 @@ export default function CrossDisciplineSection() {
                       </div>
                     </div>
                     <div className="flex items-start gap-2">
-                      <span className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: '#6B7D5A' }} />
+                      <span
+                        className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5"
+                        style={{ backgroundColor: '#6B7D5A' }}
+                      />
                       <div>
-                        <span className="text-xs text-warm-text">
-                          {c.concept_b_discipline}
-                        </span>
+                        <span className="text-xs text-warm-text">{c.concept_b_discipline}</span>
                         <div className="text-sm text-warm-dark">
                           <span className="font-semibold">{c.concept_b_name}</span>
                           <span className="text-warm-text"> - {c.concept_b_plain}</span>
@@ -112,5 +114,5 @@ export default function CrossDisciplineSection() {
         </div>
       </div>
     </section>
-  );
+  )
 }

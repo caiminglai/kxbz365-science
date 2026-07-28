@@ -47,7 +47,11 @@ function writeFavorites(items: FavoriteItem[]) {
 export function FavoritesProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<FavoriteItem[]>(() => readFavorites())
   const favoritesRef = useRef(favorites)
-  favoritesRef.current = favorites
+
+  // 同步 ref（放在 effect 中，避免渲染期间更新 ref）
+  useEffect(() => {
+    favoritesRef.current = favorites
+  }, [favorites])
 
   // 单一 storage 事件监听（跨标签页同步）
   useEffect(() => {

@@ -80,17 +80,18 @@ export function useDisciplines() {
       return
     }
     setLoading(true)
-    _fetchAndCache()
-      .then(() => {
+    ;(async () => {
+      try {
+        await _fetchAndCache()
         if (!cancelled) setLoading(false)
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error('Failed to fetch disciplines:', err)
         if (!cancelled) {
           setError('获取学科列表失败')
           setLoading(false)
         }
-      })
+      }
+    })()
     return () => {
       cancelled = true
     }

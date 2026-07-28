@@ -69,17 +69,18 @@ export function useTerms() {
       return
     }
     setLoading(true)
-    _fetchAndCache()
-      .then(() => {
+    ;(async () => {
+      try {
+        await _fetchAndCache()
         if (!cancelled) setLoading(false)
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error('Failed to fetch terms:', err)
         if (!cancelled) {
           setError('获取词条列表失败')
           setLoading(false)
         }
-      })
+      }
+    })()
     return () => {
       cancelled = true
     }

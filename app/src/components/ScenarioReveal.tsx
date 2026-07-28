@@ -12,15 +12,17 @@ export default function ScenarioReveal() {
 
   // 加载情景数据
   useEffect(() => {
-    getScenarios()
-      .then((data) => {
+    ;(async () => {
+      try {
+        const data = await getScenarios()
         setScenarios(data)
-      })
-      .catch((err) => {
+      } catch (err) {
         setError('加载情景数据失败')
         console.error('Failed to load scenarios:', err)
-      })
-      .finally(() => setLoading(false))
+      } finally {
+        setLoading(false)
+      }
+    })()
   }, [])
 
   const nextScenario = () => {

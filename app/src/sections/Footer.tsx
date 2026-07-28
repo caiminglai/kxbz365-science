@@ -4,12 +4,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Coffee, Heart, Maximize2, MessageCircle, Shield } from 'lucide-react';
-import { useState } from 'react';
+} from '@/components/ui/dialog'
+import { Coffee, Heart, Maximize2, MessageCircle, Shield } from 'lucide-react'
+import { useState } from 'react'
 
 export default function Footer() {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
   return (
     <footer className="bg-warm-deeper py-10 px-4 lg:px-6 border-t border-white/[0.08]">
@@ -30,13 +30,23 @@ export default function Footer() {
         <div className="flex flex-col items-center gap-1.5">
           <div className="text-center text-xs text-gray-500">让复杂变简单 · 2026</div>
           <div className="text-center text-xs text-gray-400">
-            <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-200 transition-colors">
+            <a
+              href="https://beian.miit.gov.cn/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-gray-200 transition-colors"
+            >
               浙ICP备2026048677号-2
             </a>
           </div>
           <div className="flex items-center justify-center gap-1 text-xs text-gray-400">
             <Shield className="w-3.5 h-3.5 text-gray-500" />
-            <a href="https://beian.mps.gov.cn/#/query/webSearch?code=33011002020096" target="_blank" rel="noopener noreferrer" className="hover:text-gray-200 transition-colors">
+            <a
+              href="https://beian.mps.gov.cn/#/query/webSearch?code=33011002020096"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-gray-200 transition-colors"
+            >
               浙公网安备33011002020096号
             </a>
           </div>
@@ -120,5 +130,5 @@ export default function Footer() {
         )}
       </div>
     </footer>
-  );
+  )
 }

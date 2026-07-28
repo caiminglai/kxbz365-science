@@ -75,9 +75,13 @@ export default function AIAssistant() {
   // 获取支持的提供商列表
   useEffect(() => {
     if (isOpen && providers.length === 0) {
-      getAIProviders()
-        .then(setProviders)
-        .catch(() => {})
+      ;(async () => {
+        try {
+          setProviders(await getAIProviders())
+        } catch {
+          // 获取提供商列表失败时静默忽略
+        }
+      })()
     }
   }, [isOpen, providers.length])
 
