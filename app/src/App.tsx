@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router'
+import type { ReactElement } from 'react'
 import Home from './pages/Home'
 import ConceptAntibody from './pages/ConceptAntibody'
 import UserSubmission from './pages/UserSubmission'
@@ -9,7 +10,7 @@ import DisciplinePage from './pages/DisciplinePage'
 import NotFound from './pages/NotFound'
 import ErrorBoundary from './components/ErrorBoundary'
 
-export default function App() {
+export default function App(): ReactElement {
   return (
     <ErrorBoundary>
       <Routes>
