@@ -119,6 +119,69 @@ export default function DisciplinePage() {
                 ))}
               </div>
             )}
+
+            {/* 学科专属延伸资源 */}
+            {id === '计算机' && (
+              <section className="mt-14">
+                <div className="flex items-baseline justify-between mb-5">
+                  <h2 className="text-xl font-bold text-warm-dark font-display flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-disc-cs" />
+                    延伸推荐资源
+                  </h2>
+                  <span className="text-xs text-warm-text/70">适合深入学习的高质量站外资源</span>
+                </div>
+                <a
+                  href="https://paperswithcode.co/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block group rounded-2xl border border-warm-border bg-white/60 hover:bg-white transition-all duration-300 p-6 shadow-sm hover:shadow-md"
+                >
+                  <div className="flex items-start gap-5">
+                    <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-disc-cs to-disc-cs/70 flex items-center justify-center text-white text-2xl shadow-sm group-hover:scale-105 transition-transform">
+                      📄
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-lg font-bold text-warm-dark group-hover:text-disc-cs transition-colors">
+                          Papers with Code
+                        </h3>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-disc-cs/10 text-disc-cs font-medium border border-disc-cs/20">
+                          论文 · 代码 · 基准
+                        </span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-warm-border/60 text-warm-text/80">
+                          paperswithcode.co
+                        </span>
+                      </div>
+                      <p className="mt-2 text-warm-text text-sm leading-relaxed">
+                        机器学习与 AI 领域最全的「论文 + 官方代码实现 + 数据集 + 基准榜单」汇总平台。
+                        从 Transformer、扩散模型到强化学习，每条 SOTA（当前最优）结果都有可复现的代码和完整评测数据，
+                        是计算机方向入门前沿研究、复现实验、对比模型效果的首选工具站。
+                      </p>
+                      <div className="mt-3 flex items-center gap-4 text-xs text-warm-text/70">
+                        <span className="inline-flex items-center gap-1">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          海量论文 + 代码对应
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          </svg>
+                          SOTA 基准排行榜
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-disc-cs/90 font-medium group-hover:translate-x-0.5 transition-transform">
+                          前往访问
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                          </svg>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              </section>
+            )}
           </div>
         )}
       </main>

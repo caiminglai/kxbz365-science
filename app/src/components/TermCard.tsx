@@ -161,37 +161,53 @@ export default function TermCard({ entry, index, highlightId }: TermCardProps) {
       )}
 
       {/* 跨学科别名 - 增强视觉 */}
-      {term.aliases && term.aliases.length > 0 && (
-        <div className="mt-3">
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <GitCompare className="w-3.5 h-3.5 text-warm-text" />
-            <span className="text-xs font-medium text-warm-text">跨学科别名</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {term.aliases.map((alias) => {
-              const aliasDiscipline = DISCIPLINES.find((d) => d.id === alias.discipline)
-              const discColor = aliasDiscipline?.color || '#8B7D6B'
-              return (
-                <span
-                  key={`${alias.discipline}-${alias.name}`}
-                  className="inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs border bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200/70 dark:border-emerald-700/40"
-                >
+      {(() => {
+        // 过滤空值脏数据：学科名和别名都必须是非空字符串
+        const validAliases = (term.aliases || []).filter(
+          (a) =>
+            a &&
+            typeof a.name === 'string' &&
+            a.name.trim() !== '' &&
+            typeof a.discipline === 'string' &&
+            a.discipline.trim() !== '',
+        )
+        if (validAliases.length === 0) return null
+        return (
+          <div className="mt-3">
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <GitCompare className="w-3.5 h-3.5 text-warm-text" />
+              <span className="text-xs font-medium text-warm-text">跨学科别名</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {validAliases.map((alias) => {
+                const aliasDiscipline = DISCIPLINES.find((d) => d.id === alias.discipline.trim())
+                const discColor = aliasDiscipline?.color || '#8B7D6B'
+                const discLabel = aliasDiscipline?.name || alias.discipline.trim()
+                const aliasName = alias.name.trim()
+                return (
                   <span
-                    className="inline-flex items-center uppercase text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded-md"
-                    style={{
-                      backgroundColor: `${discColor}25`,
-                      color: discColor,
-                    }}
+                    key={`${alias.discipline}-${alias.name}`}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs border bg-emerald-50/70 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700/50"
                   >
-                    {aliasDiscipline?.name || alias.discipline}
+                    <span
+                      className="inline-flex items-center text-[10px] font-bold tracking-wider px-1.5 py-0.5 rounded-md whitespace-nowrap"
+                      style={{
+                        backgroundColor: `${discColor}30`,
+                        color: discColor,
+                      }}
+                    >
+                      {discLabel}
+                    </span>
+                    <span className="font-semibold text-warm-dark dark:text-warm-text leading-none">
+                      {aliasName}
+                    </span>
                   </span>
-                  <span className="font-medium text-warm-dark dark:text-warm-text">{alias.name}</span>
-                </span>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* 本质解释 */}
       <p className="text-sm text-warm-text mt-3 leading-relaxed dark:text-warm-text">
