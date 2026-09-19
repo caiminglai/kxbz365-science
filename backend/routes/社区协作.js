@@ -1,5 +1,6 @@
 const express = require('express');
 const { prepare } = require('../db/入口');
+const { adminAuth } = require('../middleware/安全');
 const router = express.Router();
 
 // ========== 学科管理 ==========
@@ -37,7 +38,7 @@ router.get('/mapping/grouped', (req, res) => {
 });
 
 // 更新子领域的核心学科归属
-router.put('/mapping/:子领域名称', (req, res) => {
+router.put('/mapping/:子领域名称', adminAuth, (req, res) => {
   try {
     const { 核心学科, 显示顺序, 描述 } = req.body;
     const { 子领域名称 } = req.params;
@@ -54,7 +55,7 @@ router.put('/mapping/:子领域名称', (req, res) => {
 });
 
 // 新增子领域
-router.post('/mapping', (req, res) => {
+router.post('/mapping', adminAuth, (req, res) => {
   try {
     const { 子领域名称, 核心学科, 显示顺序 = 99, 描述 = '' } = req.body;
     prepare(`
@@ -68,7 +69,7 @@ router.post('/mapping', (req, res) => {
 });
 
 // 删除子领域
-router.delete('/mapping/:子领域名称', (req, res) => {
+router.delete('/mapping/:子领域名称', adminAuth, (req, res) => {
   try {
     prepare('DELETE FROM 学科子领域映射 WHERE 子领域名称 = ?').run(req.params.子领域名称);
     res.json({ success: true, message: '删除成功' });
@@ -94,7 +95,7 @@ router.post('/suggestions', (req, res) => {
 });
 
 // 获取纠错建议列表（需管理员权限）
-router.get('/suggestions', (req, res) => {
+router.get('/suggestions', adminAuth, (req, res) => {
   try {
     const { 状态 = '待审核', 纠错类型, page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
@@ -122,7 +123,7 @@ router.get('/suggestions', (req, res) => {
 });
 
 // 审核纠错建议
-router.put('/suggestions/:建议ID', (req, res) => {
+router.put('/suggestions/:建议ID', adminAuth, (req, res) => {
   try {
     const { 状态, 审核备注 = '' } = req.body;
     prepare(`

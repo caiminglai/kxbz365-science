@@ -91,7 +91,8 @@ app.use("/api/v1/jobs", require("./routes/高薪技术岗")); // 高薪技术岗
 app.use("/api/v1/semantics", require("./routes/语义")); // 语义词典（同义/反义/简称/上下位）
 app.use("/api/v1/domains", require("./routes/学科词库")); // 学科词库（68学科916万词）
 app.use("/api/v1/community", require("./routes/社区协作")); // 社区协作（学科映射+纠错建议）
-app.use("/api/v1/graphdb", require("./routes/图数据库")); // 图数据库API
+// 图数据库路由暂下线（Neo4j 未启用，为未来目标；恢复时取消注释并确保加 adminAuth）
+// app.use("/api/v1/graphdb", require("./routes/图数据库")); // 图数据库API
 
 // ===== 带 /twym/ 前缀的公开路由（与上面同步，保证云服务器部署路径一致性）=====
 app.use("/twym/api/v1/terms", require("./routes/词条"));
@@ -107,7 +108,8 @@ app.use("/twym/api/v1/jobs", require("./routes/高薪技术岗"));
 app.use("/twym/api/v1/semantics", require("./routes/语义"));
 app.use("/twym/api/v1/domains", require("./routes/学科词库"));
 app.use("/twym/api/v1/community", require("./routes/社区协作"));
-app.use("/twym/api/v1/graphdb", require("./routes/图数据库"));
+// 图数据库路由暂下线（与上面 /api/v1/graphdb 保持一致）
+// app.use("/twym/api/v1/graphdb", require("./routes/图数据库"));
 
 // ===== 公开路由：AI 问答（AI接口更严格限流：10请求/分钟，防止API额度被耗尽）=====
 const aiRateLimiter = require("./middleware/安全").createRateLimiter(10, 60 * 1000, "ai");
