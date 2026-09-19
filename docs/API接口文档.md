@@ -3,7 +3,7 @@
 > **统一入口**：`backend/server.js`
 > **统一前缀**：`/api/v1`
 > **统一响应格式**：`{ success: boolean, data: any, error?: { code, message } }`
-> **数据源**：磁盘 SQLite `data/同物异名.db`（better-sqlite3 驱动）+ Neo4j 4.4.40 图数据库 + Meilisearch 全文搜索引擎
+> **数据源**：磁盘 SQLite `data/同物异名.db`（better-sqlite3 驱动）+ Meilisearch 全文搜索引擎（Neo4j 4.4.40 图数据库**未启用**，相关接口见下方标注）
 > **更新日期**：2026-07-11
 
 ---
@@ -38,7 +38,7 @@
 | 路由前缀 | 功能 | 状态 | 鉴权 |
 |---------|------|------|------|
 | `/api/v1/terms` | 词条查询、搜索、学科、详情、CRUD | ✅ 活跃 | 部分需要 |
-| `/api/v1/graph` | 知识图谱节点与关系（Neo4j） | ✅ 活跃 | 公开 |
+| `/api/v1/graph` | 知识图谱节点与关系（Neo4j） | ⏸️ 依赖 Neo4j，未启用 | 公开 |
 | `/api/v1/comparisons` | 概念对比 | ✅ 活跃 | 部分需要 |
 | `/api/v1/scenarios` | 情景还原 | ✅ 活跃 | 公开 |
 | `/api/v1/career` | 职业解构 | ✅ 活跃 | 部分需要 |
@@ -307,7 +307,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ## 4. 知识图谱
 
-> 数据源：Neo4j 4.4.40 图数据库（数据由 SQLite 同步而来）
+> 数据源：Neo4j 4.4.40 图数据库（**未启用**，方向已搁置；数据曾由 SQLite 一次性同步）
 > 数据规模：19,703 词条节点、10 学科节点、18,000+ 关系
 
 ### 4.1 图谱节点
