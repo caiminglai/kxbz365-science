@@ -5,7 +5,7 @@
 
 // ===== 1. 请求限流（防止洪水攻击）=====
 // 注意：此限流器基于内存 Map，仅在单进程模式下有效。
-// 如果使用 PM2 cluster 模式或多实例部署，需改用 Redis 等共享存储（如 rate-limit-redis）。
+// 如果多实例部署（容器副本数 >1），需改用 Redis 等共享存储（如 rate-limit-redis）。
 
 const requestCounts = new Map(); // IP → { count, resetTime }
 const blockedIPs = new Set(); // 被封禁的IP黑名单
