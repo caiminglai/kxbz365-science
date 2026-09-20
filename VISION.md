@@ -64,8 +64,8 @@
 - 后端:Express.js + better-sqlite3(SQLite 主库)。Neo4j 方向**已放弃,不再启用**（仅残留代码，路由未挂载）
 - 搜索引擎:Meilisearch **未启用**（`backend/bin/meilisearch.exe` 已删除），搜索默认走 SQLite `LIKE`
 - AI:OpenAI SDK（实际支持多提供商，前端在请求体自带 `apiKey`）
-- 内容管理:Obsidian + Git 自动同步
-- 部署:**线上现行** 阿里云 Linux + Nginx + PM2；**目标方案** Docker Compose + Caddy（本机已整站验证，服务器迁移未执行）
+- 内容管理:数据库 → Obsidian **单向导出**（`services/Obsidian同步.js`）；`obsidian/` 就在本仓库内并被 Git 跟踪；**不存在** "写 Markdown 自动入库" 的导入链路
+- 部署:Docker Compose + Caddy 单轨（本机已整站验证；服务器将重装为 Debian + Docker 后走同一份 compose，旧栈 Nginx + PM2 作废）
 
 ---
 

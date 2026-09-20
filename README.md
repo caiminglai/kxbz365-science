@@ -6,7 +6,7 @@
 
 - 前端:React 19 + TypeScript + Vite 7 + Tailwind CSS + D3.js + Framer Motion
 - 后端:Express.js + better-sqlite3(SQLite 主库)+ Meilisearch（**未启用**,实际走 SQLite LIKE）+ OpenAI API（Neo4j 图数据库方向**已放弃**,仅残留代码）
-- 部署:Docker Compose + Caddy（Let's Encrypt 自动续期）— 本地已整站验证,**服务器迁移待执行**;线上当前仍是 Nginx + PM2
+- 部署:Docker Compose + Caddy（Let's Encrypt 自动续期）— 本地已整站验证;服务器将重装为 Debian + Docker 后走同一份 compose,旧栈 Nginx + PM2 作废
 
 ## 目录结构
 
