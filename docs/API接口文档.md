@@ -3,7 +3,7 @@
 > **统一入口**：`backend/server.js`
 > **统一前缀**：`/api/v1`
 > **统一响应格式**：`{ success: boolean, data: any, error?: { code, message } }`
-> **数据源**：磁盘 SQLite 三个库 `data/同物异名.db`、`data/学科词库.db`、`data/语义词典.db`（better-sqlite3 驱动）；知识图谱接口同样直接读 SQLite，与 Neo4j 无关（Neo4j 方向**已放弃,不再启用**，`graphdb` 路由未挂载）。全文搜索**默认走 SQLite `LIKE`**，Meilisearch **未启用**，无需任何外部服务。
+> **数据源**：磁盘 SQLite 三个库 `data/同物异名.db`、`data/学科词库.db`、`data/语义词典.db`（better-sqlite3 驱动）；知识图谱接口同样直接读 SQLite，与 Neo4j 无关（Neo4j 方向**已放弃,不再启用**，graphdb 路由与残留代码已删除）。全文搜索**默认走 SQLite `LIKE`**，Meilisearch **未启用**，无需任何外部服务。
 > **部署**：接口本身与部署方式无关。接入层单轨：**Docker Compose + Caddy**（本机已整站验证；服务器将重装为 Debian 后走同一份 compose，旧栈 Nginx + PM2 已作废，不再作回滚路径）。API 只有 `/api/v1/*` 一套挂载（旧 Nginx rewrite 遗留的 `/twym/api/v1/*` 镜像段已于 2026-09-20 从 `server.js` 删除）；`graphdb` 路由同样未挂载。`searchRateLimiter`（600 请求/分钟）只挂在 `/api/v1/terms/search`，其余接口受通用 1000 请求/分钟限流约束。
 > **更新日期**：2026-09-20（按代码实测校对）
 
@@ -57,7 +57,6 @@
 | `/api/v1/admin` | 管理后台（需 `x-admin-token`） | ✅ 活跃 | 需要 |
 | `/api/v1/admin/reload-db` | 从磁盘重载数据库 | ✅ 活跃 | 需要 |
 | `/api/v1/ai` | AI 问答（多提供商 LLM + RAG） | ✅ 活跃 | 公开（需在请求体自带 `apiKey`，不走 `x-admin-token`） |
-| `/api/v1/graphdb` | Neo4j 图数据库接口 | ❌ 未挂载（Neo4j **已放弃,不再启用**，`server.js` 中已注释） | — |
 
 ---
 
@@ -312,7 +311,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 > 数据源：SQLite `data/同物异名.db`（`services/知识图谱.js` 直接 `SELECT` `词条` 与 `图谱关系` 表，结果经 `services/缓存.js` 缓存），**与 Neo4j 无关**——Neo4j 方向**已放弃,不再启用**。
 > 数据规模（实测）：977 词条节点、10 学科节点、672 条关系。
-> 本节只有 `nodes`、`links` 两个端点；邻居遍历、最短路径、Cypher 查询等在 `routes/图数据库.js`（`/api/v1/graphdb`）中，该路由在 `server.js` 里已注释**未挂载**。
+> 本节只有 `nodes`、`links` 两个端点；原设计的邻居遍历、最短路径、Cypher 查询随 Neo4j 方向放弃，相关代码已删除。
 
 ### 4.1 图谱节点
 

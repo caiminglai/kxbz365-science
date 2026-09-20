@@ -41,17 +41,13 @@ function requestLogger(req, res, next) {
   
   const time = new Date().toLocaleTimeString("zh-CN");
   const originalSend = res.send;
-  const originalJson = res.json;
 
+  // 响应体大小统一由 send 统计：Express 的 res.json 会先序列化再调用 res.send，
+  // 这里再包一层 json 只会让同一个响应被 stringify 两次。
   let bodySize = 0;
   res.send = function patchedSend(...args) {
     if (args[0] && typeof args[0] === "string") bodySize += args[0].length;
     return originalSend.apply(this, args);
-  };
-  res.json = function patchedJson(...args) {
-    const data = JSON.stringify(args[0] || "");
-    bodySize = data.length;
-    return originalJson.apply(this, args);
   };
 
   // 添加请求ID到响应头

@@ -5,7 +5,7 @@
 ## 技术栈
 
 - 前端:React 19 + TypeScript + Vite 7 + Tailwind CSS + D3.js + Framer Motion
-- 后端:Express.js + better-sqlite3(SQLite 主库)+ Meilisearch（**未启用**,实际走 SQLite LIKE）+ OpenAI API（Neo4j 图数据库方向**已放弃**,仅残留代码）
+- 后端:Express.js + better-sqlite3(SQLite 主库)+ Meilisearch（**未启用**,实际走 SQLite LIKE）+ OpenAI API（Neo4j 图数据库方向**已放弃**,残留代码与依赖已删除）
 - 部署:Docker Compose + Caddy（Let's Encrypt 自动续期）— 本地已整站验证;服务器将重装为 Debian + Docker 后走同一份 compose,旧栈 Nginx + PM2 作废
 
 ## 目录结构
@@ -40,7 +40,7 @@ cd backend && npm install --registry=https://registry.npmmirror.com && npm start
 # → http://localhost:3000
 
 # 图数据库:不需要。Neo4j 方向已放弃、不再启用,图谱数据直接读 SQLite
-# （残留的 db/图数据库.js、db/全量迁移到Neo4j.js 与 npm run sync:neo4j 为遗留产物,不要执行）
+# （原残留的 db/图数据库.js、db/全量迁移到Neo4j.js 与 npm run sync:neo4j 已于 2026-09-21 删除）
 
 # 前端(新终端)
 cd app && npm install --registry=https://registry.npmmirror.com && npm run dev

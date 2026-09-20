@@ -4,7 +4,7 @@
 
 *品牌名称:科学不装*
 
-> **数据库现状（2026-09-20 校对）**：本站数据库为 **SQLite**（唯一真相源）。图数据库（Neo4j）方向**已放弃，不再启用**：容器编排里没有 Neo4j，生产不依赖它，`data/neo4j/` 数据目录已删除，仓库里只剩残留代码（`backend/db/图数据库.js`、`services/图数据库服务.js`、`routes/图数据库.js`——路由在 `server.js` 中已注释未挂载）和遗留命令 `npm run sync:neo4j`（不应对生产执行）。下文所有涉及“图数据库 / Neo4j / 迁移”的内容均为**历史规划**，保留仅作记录；知识图谱的读写全部走 SQLite，且**前端图谱页面已上线**。
+> **数据库现状（2026-09-20 校对）**：本站数据库为 **SQLite**（唯一真相源）。图数据库（Neo4j）方向**已放弃，不再启用**：容器编排里没有 Neo4j，生产不依赖它，`data/neo4j/` 数据目录已删除，仓库里连残留代码也已在 2026-09-21 删除（原 `backend/db/图数据库.js`、`services/图数据库服务.js`、`routes/图数据库.js`、`db/全量迁移到Neo4j.js` 与 `npm run sync:neo4j`，连同 `neo4j-driver`/`openai`/`sql.js` 三个未使用依赖）。下文所有涉及“图数据库 / Neo4j / 迁移”的内容均为**历史规划**，保留仅作记录；知识图谱的读写全部走 SQLite，且**前端图谱页面已上线**。
 
 ---
 
@@ -61,7 +61,7 @@
 ## 技术栈
 
 - 前端:React 19 + TypeScript + Vite 7 + Tailwind CSS + D3.js + Framer Motion
-- 后端:Express.js + better-sqlite3(SQLite 主库)。Neo4j 方向**已放弃,不再启用**（仅残留代码，路由未挂载）
+- 后端:Express.js + better-sqlite3(SQLite 主库)。Neo4j 方向**已放弃,不再启用**（残留代码与依赖已删除）
 - 搜索引擎:Meilisearch **未启用**（`backend/bin/meilisearch.exe` 已删除），搜索默认走 SQLite `LIKE`
 - AI:OpenAI SDK（实际支持多提供商，前端在请求体自带 `apiKey`）
 - 内容管理:数据库 → Obsidian **单向导出**（`services/Obsidian同步.js`）；`obsidian/` 就在本仓库内并被 Git 跟踪；**不存在** "写 Markdown 自动入库" 的导入链路
@@ -107,7 +107,7 @@
 - ✅ 词库融合:19张词库表 → 10个核心学科(学科子领域映射表)
 - ✅ 社区协作三层机制:学科映射管理 + 纠错建议 + Obsidian 协作
 
-> 现状（2026-09-20）：`routes/图数据库.js` 在 `server.js` 中已注释、路由不挂载；Neo4j 数据目录 `data/neo4j/` 已删除；生产不依赖 Neo4j。残留代码与 `npm run sync:neo4j` 属历史包袱（待办 #6/#34）。
+> 现状（2026-09-21 更新）：Neo4j 数据目录 `data/neo4j/` 与全部残留代码（含 `db/图数据库.js`、`routes/图数据库.js`、`services/图数据库服务.js`、`db/全量迁移到Neo4j.js`、`npm run sync:neo4j`）均已删除，生产不依赖 Neo4j。上文清单保留仅作历史记录。
 
 **数据规模（当时灌入 Neo4j 的快照，现已随数据目录删除，与当前 SQLite 实测不一致）:**
 | 类型 | 数量 | 说明 |
