@@ -5,8 +5,8 @@
 ## 技术栈
 
 - 前端:React 19 + TypeScript + Vite 7 + Tailwind CSS + D3.js + Framer Motion
-- 后端:Express.js + better-sqlite3(SQLite 主库)+ Meilisearch + OpenAI API（Neo4j 图谱层代码保留但**未启用**）
-- 部署:Alibaba Cloud Linux + Nginx + PM2
+- 后端:Express.js + better-sqlite3(SQLite 主库)+ Meilisearch（**未启用**,实际走 SQLite LIKE）+ OpenAI API（Neo4j 图数据库方向**已放弃**,仅残留代码）
+- 部署:Docker Compose + Caddy（Let's Encrypt 自动续期）— 本地已整站验证,**服务器迁移待执行**;线上当前仍是 Nginx + PM2
 
 ## 目录结构
 
@@ -25,11 +25,10 @@
 │   ├── middleware/      # 中间件
 │   ├── utils/          # 工具函数
 │   └── server.js       # 入口
-├── data/               # 数据库文件
+├── data/               # 数据库文件（三个独立 .db 文件）
 │   ├── 同物异名.db     # 主数据库 SQLite(精加工工作台)
-│   ├── 学科词库.db     # 学科词库 (19 表 / 8,198 条)
-│   ├── 语义词典.db     # 语义词典 (3 表 / 8,598 条)
-│   └── neo4j/          # Neo4j 数据目录(遗留,未启用)
+│   ├── 学科词库.db     # 学科词库 (19 表 / 7,841 行)
+│   └── 语义词典.db     # 语义词典 (4 表 / 8,598 行)
 └── docs/               # 项目文档
 ```
 
@@ -47,19 +46,18 @@ cd backend && npm install --registry=https://registry.npmmirror.com && npm start
 cd app && npm install --registry=https://registry.npmmirror.com && npm run dev
 # → http://localhost:3001
 
-# Meilisearch(可选)
-cd backend/bin && .\meilisearch.exe --db-path ../meili_data --master-key=你的密钥
-# → http://localhost:7700
+# 搜索:Meilisearch 未启用(exe 已删除),默认走 SQLite LIKE 查询
+# services/Meilisearch服务.js 探测不到 7700 端口时自动回退,无需任何启动步骤
 ```
 
 访问:http://localhost:3001/twym/
 
 ## 文档
 
-- [项目总览](./项目总览.md) -- 技术栈、目录结构、数据库概览、npm scripts
-- [代码参考](./代码参考.md) -- 前后端架构、数据库设计、依赖、错误码
-- [部署运维](./部署运维.md) -- 服务器部署、Nginx 配置、问题排查
-- [API 接口文档](./API接口文档.md) -- REST API 端点参考
+- [项目总览](./docs/项目总览.md) -- 技术栈、目录结构、数据库概览、npm scripts
+- [代码参考](./docs/代码参考.md) -- 前后端架构、数据库设计、依赖、错误码
+- [部署运维](./docs/部署运维.md) -- 服务器部署、Docker Compose + Caddy 配置、问题排查
+- [API 接口文档](./docs/API接口文档.md) -- REST API 端点参考
 
 ## 许可证
 
