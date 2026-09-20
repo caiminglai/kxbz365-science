@@ -75,7 +75,7 @@ app.use(requestLogger);
 
 // ===== 公开路由（活跃，不需要认证）=====
 
-// 搜索接口更严格限流：600请求/分钟（叠加在通用限流之上；仅挂本路径，/twym 前缀的搜索未挂此限流）
+// 搜索接口更严格限流：600请求/分钟（叠加在通用限流之上）
 app.use("/api/v1/terms/search", searchRateLimiter);
 
 app.use("/api/v1/terms", require("./routes/词条")); // 词条：列表/搜索/详情/学科
@@ -94,61 +94,29 @@ app.use("/api/v1/community", require("./routes/社区协作")); // 社区协作�
 // 图数据库路由暂下线（Neo4j 未启用，为未来目标；恢复时取消注释并确保加 adminAuth）
 // app.use("/api/v1/graphdb", require("./routes/图数据库")); // 图数据库API
 
-// ===== 带 /twym/ 前缀的公开路由（与上面同步，保证云服务器部署路径一致性）=====
-app.use("/twym/api/v1/terms", require("./routes/词条"));
-app.use("/twym/api/v1/submissions", require("./routes/用户提交"));
-app.use("/twym/api/v1/graph", require("./routes/知识图谱"));
-app.use("/twym/api/v1/comparisons", require("./routes/概念对比"));
-app.use("/twym/api/v1/scenarios", require("./routes/情景还原"));
-app.use("/twym/api/v1/career", require("./routes/职业解构"));
-app.use("/twym/api/v1/industry", require("./routes/产业岗位"));
-app.use("/twym/api/v1/antibody", require("./routes/概念抗体"));
-app.use("/twym/api/v1/stats", require("./routes/统计"));
-app.use("/twym/api/v1/jobs", require("./routes/高薪技术岗"));
-app.use("/twym/api/v1/semantics", require("./routes/语义"));
-app.use("/twym/api/v1/domains", require("./routes/学科词库"));
-app.use("/twym/api/v1/community", require("./routes/社区协作"));
-// 图数据库路由暂下线（与上面 /api/v1/graphdb 保持一致）
-// app.use("/twym/api/v1/graphdb", require("./routes/图数据库"));
-
 // ===== 公开路由：AI 问答（AI接口更严格限流：10请求/分钟，防止API额度被耗尽）=====
 const aiRateLimiter = require("./middleware/安全").createRateLimiter(10, 60 * 1000, "ai");
 app.use("/api/v1/ai", aiRateLimiter);
-app.use("/twym/api/v1/ai", aiRateLimiter);
 app.use("/api/v1/ai", require("./routes/AI问答"));
-app.use("/twym/api/v1/ai", require("./routes/AI问答"));
 
 // ===== 管理路由（活跃，需要 x-admin-token）=====
 // 注意：先注册具体子路由，最后注册通用 admin 路由，避免被截获
 
 // ===== 管理接口统一更严格限流：300请求/分钟（叠加在通用限流之上）
 app.use("/api/v1/admin", adminRateLimiter);
-app.use("/twym/api/v1/admin", adminRateLimiter);
 
 app.use("/api/v1/admin/career", require("./routes/职业解构")); // 职业解构管理
 app.use("/api/v1/admin/industry", require("./routes/产业岗位")); // 产业岗位管理
 app.use("/api/v1/admin/antibody", require("./routes/概念抗体")); // 概念抗体管理
 app.use("/api/v1/admin/jobs", require("./routes/高薪技术岗")); // 高薪技术岗管理
 app.use("/api/v1/admin/reload-db", require("./routes/重载数据库")); // 重载数据库
-app.use("/twym/api/v1/admin/reload-db", require("./routes/重载数据库")); // 重载数据库（twym路径）
 app.use("/api/v1/admin", require("./routes/管理")); // 词条/学科/备份/仪表盘
-
-// ===== 带 /twym/ 前缀的管理路由（同上同步）=====
-app.use("/twym/api/v1/admin/career", require("./routes/职业解构"));
-app.use("/twym/api/v1/admin/industry", require("./routes/产业岗位"));
-app.use("/twym/api/v1/admin/antibody", require("./routes/概念抗体"));
-app.use("/twym/api/v1/admin/jobs", require("./routes/高薪技术岗"));
-app.use("/twym/api/v1/admin", require("./routes/管理"));
 
 // ===== 管理后台页面（简易HTML管理界面）=====
 
 const adminHtmlPath = path.join(__dirname, "public", "admin.html");
 if (fs.existsSync(adminHtmlPath)) {
   app.get("/admin", (req, res) => {
-    res.type("html");
-    res.sendFile(adminHtmlPath);
-  });
-  app.get("/twym/admin", (req, res) => {
     res.type("html");
     res.sendFile(adminHtmlPath);
   });
@@ -161,20 +129,12 @@ if (fs.existsSync(antibodyPath)) {
     res.type("html");
     res.sendFile(antibodyPath);
   });
-  app.get("/twym/admin/antibody", (req, res) => {
-    res.type("html");
-    res.sendFile(antibodyPath);
-  });
 }
 
 // 职业解构管理页面
 const careerPath = path.join(__dirname, "public", "career.html");
 if (fs.existsSync(careerPath)) {
   app.get("/admin/career", (req, res) => {
-    res.type("html");
-    res.sendFile(careerPath);
-  });
-  app.get("/twym/admin/career", (req, res) => {
     res.type("html");
     res.sendFile(careerPath);
   });
@@ -187,10 +147,6 @@ if (fs.existsSync(jobsPath)) {
     res.type("html");
     res.sendFile(jobsPath);
   });
-  app.get("/twym/admin/jobs", (req, res) => {
-    res.type("html");
-    res.sendFile(jobsPath);
-  });
 }
 
 // ===== 静态文件（前端dist目录）- 仅在非API请求时使用 =====
@@ -200,8 +156,8 @@ if (fs.existsSync(distPath)) {
   // 注意：express.static 必须放在 API 路由之后，并且 app.get('*') 不能拦截 /api/* 请求
   app.use(express.static(distPath));
   app.get("*", (req, res, next) => {
-    // 排除 API 和 twym 前缀请求，让它们落到下面的 404 处理器
-    if (req.path.startsWith("/api/") || req.path.startsWith("/twym/")) {
+    // 排除 API 请求，让它落到下面的 404 处理器
+    if (req.path.startsWith("/api/")) {
       return next();
     }
     res.type("html");

@@ -4,7 +4,7 @@
 > **统一前缀**：`/api/v1`
 > **统一响应格式**：`{ success: boolean, data: any, error?: { code, message } }`
 > **数据源**：磁盘 SQLite 三个库 `data/同物异名.db`、`data/学科词库.db`、`data/语义词典.db`（better-sqlite3 驱动）；知识图谱接口同样直接读 SQLite，与 Neo4j 无关（Neo4j 方向**已放弃,不再启用**，`graphdb` 路由未挂载）。全文搜索**默认走 SQLite `LIKE`**，Meilisearch **未启用**，无需任何外部服务。
-> **部署**：接口本身与部署方式无关。接入层单轨：**Docker Compose + Caddy**（本机已整站验证；服务器将重装为 Debian 后走同一份 compose，旧栈 Nginx + PM2 已作废，不再作回滚路径）。`/api/v1/*` 与 `/twym/api/v1/*` 目前**仍完整双挂载**（公开路由、`ai`、`admin` 全部镜像，见 `server.js:81-141`），响应行为一致；`graphdb` 两侧都已注释未挂载。**唯一例外**：`searchRateLimiter`（600 请求/分钟）只挂在 `/api/v1/terms/search`，`/twym/api/v1/terms/search` 未挂，仅受通用 1000/分钟限流约束（`server.js:79`）——`/twym` 镜像段属历史包袱（旧 Nginx rewrite 的残留），删除待办记在 IDE 任务 #35。
+> **部署**：接口本身与部署方式无关。接入层单轨：**Docker Compose + Caddy**（本机已整站验证；服务器将重装为 Debian 后走同一份 compose，旧栈 Nginx + PM2 已作废，不再作回滚路径）。API 只有 `/api/v1/*` 一套挂载（旧 Nginx rewrite 遗留的 `/twym/api/v1/*` 镜像段已于 2026-09-20 从 `server.js` 删除）；`graphdb` 路由同样未挂载。`searchRateLimiter`（600 请求/分钟）只挂在 `/api/v1/terms/search`，其余接口受通用 1000 请求/分钟限流约束。
 > **更新日期**：2026-09-20（按代码实测校对）
 
 ---
@@ -825,7 +825,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ## 12. 社区协作 - 学科子领域映射
 
-> 路由文件：`backend/routes/社区协作.js`，在 `server.js` 中挂载为 `/api/v1/community`（同时别名挂载 `/twym/api/v1/community`）。
+> 路由文件：`backend/routes/社区协作.js`，在 `server.js` 中挂载为 `/api/v1/community`。
 > 数据表：`学科子领域映射`（字段：`子领域名称`(主键) / `核心学科` / `词条数量` / `显示顺序` / `描述` / `创建时间` / `更新时间`）。
 > 本模块失败响应为 `{ success: false, message: "..." }`，**没有 `error.code`**。
 

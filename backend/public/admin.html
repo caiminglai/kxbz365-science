@@ -841,20 +841,7 @@ tr:hover td{background:#F7F5F0}
 
 <script>
 // ========== 配置 ==========
-// 动态检测路径前缀（本地部署为 ""，云服务器部署为 "/twym"）
-function _getBasePath() {
-  const pathname = window.location.pathname;
-  if (pathname.startsWith('/twym/') || pathname === '/twym') {
-    return '/twym';
-  }
-  // 检测是否在 /twym 前缀下
-  if (pathname.split('/').includes('twym')) {
-    // 返回 /twym 作为 base path
-    return '/twym';
-  }
-  return '';
-}
-const API_BASE = _getBasePath(); // 同源，直接相对路径
+const API_BASE = ''; // 同源部署，无前缀
 let ADMIN_TOKEN = localStorage.getItem('adminToken') || '';
 let currentPage = 1;
 let currentTab = 'dashboard';

@@ -376,17 +376,7 @@
   </div>
 
   <script>
-    function _getBasePath() {
-      const pathname = window.location.pathname;
-      if (pathname.startsWith('/twym/') || pathname === '/twym') {
-        return '/twym';
-      }
-      if (pathname.split('/').includes('twym')) {
-        return '/twym';
-      }
-      return '';
-    }
-    const API_BASE = _getBasePath();
+    const API_BASE = '';
     let ADMIN_TOKEN = localStorage.getItem('adminToken') || '';
     localStorage.setItem('adminToken', ADMIN_TOKEN);
     let antibodies = [];

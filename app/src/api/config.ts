@@ -1,30 +1,16 @@
 /**
  * API 配置文件
- * 后端部署后，把 BASE_URL 改成你的真实后端地址
- * 开发环境用相对路径，通过代理转发
- * 生产环境自动检测 /twym/ 前缀（与云服务器部署路径一致）
+ * 开发环境用相对路径，通过 vite 代理转发到后端 3000
+ * 生产环境同源部署（Caddy 反代到 twym 容器），无路径前缀
  */
 
-// 动态计算基础路径：检测当前URL是否在 /twym/ 子路径下
-function _detectBasePath(): string {
-  if (typeof window === 'undefined') return ''
-  const pathname = window.location.pathname
-  if (pathname.startsWith('/twym/') || pathname === '/twym') {
-    return '/twym'
-  }
-  if (pathname.split('/').includes('twym')) {
-    return '/twym'
-  }
-  return ''
-}
-
 // 开发环境：使用 .env 中的 VITE_API_BASE_URL
-// 生产环境：自动检测部署路径前缀
+// 生产环境：同源部署，空前缀
 const envBase = typeof import.meta !== 'undefined'
   ? (import.meta.env.VITE_API_BASE_URL as string | undefined)
   : undefined
 
-export const API_BASE_URL = envBase || _detectBasePath()
+export const API_BASE_URL = envBase || ''
 
 // API 端点定义
 export const API_ENDPOINTS = {
