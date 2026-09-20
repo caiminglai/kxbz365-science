@@ -75,7 +75,7 @@ app.use(requestLogger);
 
 // ===== 公开路由（活跃，不需要认证）=====
 
-// 搜索接口更严格限流：60请求/分钟（叠加在通用限流之上）
+// 搜索接口更严格限流：600请求/分钟（叠加在通用限流之上；仅挂本路径，/twym 前缀的搜索未挂此限流）
 app.use("/api/v1/terms/search", searchRateLimiter);
 
 app.use("/api/v1/terms", require("./routes/词条")); // 词条：列表/搜索/详情/学科
