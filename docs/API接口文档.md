@@ -3,8 +3,9 @@
 > **统一入口**：`backend/server.js`
 > **统一前缀**：`/api/v1`
 > **统一响应格式**：`{ success: boolean, data: any, error?: { code, message } }`
-> **数据源**：磁盘 SQLite `data/同物异名.db`（better-sqlite3 驱动）+ Meilisearch 全文搜索引擎（Neo4j 4.4.40 图数据库**未启用**，相关接口见下方标注）
-> **更新日期**：2026-07-11
+> **数据源**：磁盘 SQLite 三个库 `data/同物异名.db`、`data/学科词库.db`、`data/语义词典.db`（better-sqlite3 驱动）；知识图谱接口同样直接读 SQLite，与 Neo4j 无关（Neo4j 方向**已放弃,不再启用**，`graphdb` 路由未挂载）。全文搜索**默认走 SQLite `LIKE`**，Meilisearch **未启用**，无需任何外部服务。
+> **部署**：接口本身与部署方式无关。接入层双轨——**线上现行**：Nginx 反代 + PM2 进程；**目标方案**：Docker Compose + Caddy（本机已整站验证，服务器迁移未执行）。两种口径下 `/api/v1/*` 与 `/twym/api/v1/*` 均**完整双挂载**（公开路由、`ai`、`admin` 全部镜像，见 `server.js:81-141`），行为一致；`graphdb` 两侧都已注释未挂载。
+> **更新日期**：2026-09-20（按代码实测校对）
 
 ---
 
@@ -21,15 +22,18 @@
 9. [概念抗体](#9-概念抗体)
 10. [高薪技术岗](#10-高薪技术岗)
 11. [用户提交](#11-用户提交)
-12. [学科映射管理](#12-学科映射管理)
-13. [词条纠错建议](#13-词条纠错建议)
+12. [社区协作 - 学科子领域映射](#12-社区协作---学科子领域映射)
+13. [社区协作 - 词条纠错建议](#13-社区协作---词条纠错建议)
 14. [统计与健康检查](#14-统计与健康检查)
 15. [管理后台 - 词条](#15-管理后台---词条)
 16. [管理后台 - 学科](#16-管理后台---学科)
 17. [管理后台 - 备份与仪表盘](#17-管理后台---备份与仪表盘)
-18. [管理后台 - 内容模块](#18-管理后台---内容模块)
-19. [前端调用约定](#19-前端调用约定)
-20. [路由文件索引](#20-路由文件索引)
+18. [管理后台 - 内容模块与运维](#18-管理后台---内容模块与运维)
+19. [学科词库](#19-学科词库)
+20. [语义词典](#20-语义词典)
+21. [AI 问答](#21-ai-问答)
+22. [前端调用约定](#22-前端调用约定)
+23. [路由文件索引](#23-路由文件索引)
 
 ---
 
@@ -38,7 +42,7 @@
 | 路由前缀 | 功能 | 状态 | 鉴权 |
 |---------|------|------|------|
 | `/api/v1/terms` | 词条查询、搜索、学科、详情、CRUD | ✅ 活跃 | 部分需要 |
-| `/api/v1/graph` | 知识图谱节点与关系（Neo4j） | ⏸️ 依赖 Neo4j，未启用 | 公开 |
+| `/api/v1/graph` | 知识图谱节点与关系（`nodes`/`links`） | ✅ 活跃（直接读 SQLite，与 Neo4j 无关） | 公开 |
 | `/api/v1/comparisons` | 概念对比 | ✅ 活跃 | 部分需要 |
 | `/api/v1/scenarios` | 情景还原 | ✅ 活跃 | 公开 |
 | `/api/v1/career` | 职业解构 | ✅ 活跃 | 部分需要 |
@@ -46,11 +50,14 @@
 | `/api/v1/antibody` | 概念抗体 | ✅ 活跃 | 部分需要 |
 | `/api/v1/jobs` | 高薪技术岗（分类、岗位、阶段、技能） | ✅ 活跃 | 部分需要 |
 | `/api/v1/submissions` | 用户提交同物异名 | ✅ 活跃 | 部分需要 |
-| `/api/v1/discipline-mapping` | 学科子领域映射管理（19表→10学科） | ✅ 活跃 | 部分需要 |
-| `/api/v1/corrections` | 词条纠错建议 | ✅ 活跃 | 部分需要 |
+| `/api/v1/community` | 社区协作：学科子领域映射 + 词条纠错建议 | ✅ 活跃（3 条带中文路径参数的路由 ⚠ 恒 404，见第 12/13 节） | 部分需要 |
+| `/api/v1/domains` | 学科词库（19 张分表，独立 SQLite 库） | ✅ 活跃 | 部分需要 |
+| `/api/v1/semantics` | 语义词典（同义/反义/简称/上下位，独立 SQLite 库） | ✅ 活跃 | 公开 |
 | `/api/v1/stats` | 统计 + 健康检查 + 用户反馈 | ✅ 活跃 | 公开 |
 | `/api/v1/admin` | 管理后台（需 `x-admin-token`） | ✅ 活跃 | 需要 |
-| `/api/v1/ai` | AI 问答（RAG + LLM） | ✅ 活跃 | 需要 |
+| `/api/v1/admin/reload-db` | 从磁盘重载数据库 | ✅ 活跃 | 需要 |
+| `/api/v1/ai` | AI 问答（多提供商 LLM + RAG） | ✅ 活跃 | 公开（需在请求体自带 `apiKey`，不走 `x-admin-token`） |
+| `/api/v1/graphdb` | Neo4j 图数据库接口 | ❌ 未挂载（Neo4j **已放弃,不再启用**，`server.js` 中已注释） | — |
 
 ---
 
@@ -65,6 +72,8 @@
 }
 ```
 
+> **例外**：`/api/v1/semantics/*` 与 `/api/v1/domains/*` 由 `routes/语义.js`、`routes/学科词库.js` 直接返回裸对象（如 `{ "查询词": …, "同义词": […] }`、`{ "domains": […], "count": … }`），**不带** `success` 包装；它们出错时返回 `{ "error": "文案", "hint": "…" }`，没有 `error.code`。`/api/v1/community/*` 出错时返回 `{ "success": false, "message": "…" }`，同样没有 `error.code`。
+
 ### 2.2 失败响应
 
 ```json
@@ -76,42 +85,36 @@
 
 ### 2.3 分页结构
 
-列表接口统一使用以下结构：
-
-```json
-{
-  "success": true,
-  "data": {
-    "items": [ ... ],
-    "total": 120,
-    "page": 1,
-    "pageSize": 20
-  }
-}
-```
-
-词条列表使用的字段名为 `terms` 而非 `items`：
+只有两个接口真正分页，字段名不同：
 
 ```json
 {
   "success": true,
   "data": {
     "terms": [ ... ],
-    "total": 1069,
+    "total": 977,
     "page": 1,
-    "pageSize": 1000
+    "pageSize": 50
   }
 }
 ```
+
+- `GET /api/v1/terms`：`pageSize` 默认 50，代码内上限 1000
+- `GET /api/v1/admin/terms`：同结构，`pageSize` 默认 20
+- `GET /api/v1/community/suggestions`：`data` 直接是数组，`total` / `page` / `limit` 挂在响应**顶层**（默认 `limit` 20）
+- 其余列表接口 `data` 直接返回全量数组，**不分页**
+
+> 全仓不存在 `{ items, total, page, pageSize }` 这种统一分页形状。
 
 ### 2.4 常见错误码
 
 | 错误码 | HTTP状态码 | 含义 |
 |--------|-----------|------|
-| `NOT_FOUND` | 404 | 资源不存在 |
-| `INTERNAL_ERROR` | 500 | 服务器内部错误 |
-| `RATE_LIMITED` | 429 | 请求过于频繁 |
-| `BLOCKED` | 403 | IP 被临时封禁 |
+| `NOT_FOUND` | 404 | 资源不存在；未匹配到路由时为兜底 404（`接口不存在`） |
+| `INTERNAL_ERROR` | 500 | 服务器内部错误（全局兜底） |
+| `RATE_LIMITED` | 429 | 请求过于频繁，已临时封禁 |
+| `BLOCKED` | 403 | IP 在限流黑名单中 |
+| `IP_NOT_ALLOWED` | 403 | IP 不在白名单中 |
 | `INVALID_INPUT` | 400 | 输入包含非法字符（SQL 注入检测） |
 | `PAYLOAD_TOO_LARGE` | 413 | 请求体超过 1MB |
 | `UNAUTHORIZED` | 401 | 管理员 Token 无效 |
@@ -120,40 +123,38 @@
 | `MISSING_FIELDS` | 400 | 缺少必填字段 |
 | `MISSING_ID` | 400 | 缺少ID参数 |
 | `MISSING_STATUS` | 400 | 缺少状态参数 |
-| `NO_FIELDS` | 400 | 没有要更新的字段 |
-| `DUPLICATE_KEY` | 400 | 学科标识已存在 |
-| `INVALID_ORDER` | 400 | 排序数据格式错误 |
-| `HAS_TERMS` | 400 | 学科下存在词条，无法删除 |
+| `MISSING_NAME` | 400 | 缺少名称字段（岗位分类） |
+| `MISSING_DISCIPLINE` | 400 | 缺少学科参数（`/admin/terms/next-id`、AI 生成词条） |
+| `MISSING_QUESTION` | 400 | AI 问答缺少问题 |
+| `MISSING_TERM_NAME` | 400 | AI 生成词条缺少术语名 |
+| `MISSING_NAME_A` / `MISSING_NAME_B` | 400 | AI 生成概念对比缺少概念 A / B |
 | `MISSING_API_KEY` | 400 | AI 问答缺少 API Key |
-| `BACKUP_ERROR` | 500 | 备份失败 |
-| `MIGRATE_ERROR` | 500 | 数据库迁移失败 |
-| `INVALID_BODY` | 400 | 请求体格式不正确（如 POST /admin/terms 需要非空数组） |
-| `INVALID_FIELDS` | 400 | 请求体字段类型不合法 |
 | `MISSING_CSV` | 400 | CSV 导入缺少内容 |
 | `EMPTY_CSV` | 400 | CSV 内容为空或无可导入数据 |
-| `MISSING_NAME` | 400 | 缺少名称字段 |
-| `EXPORT_ERROR` | 500 | CSV 导出失败 |
-| `IMPORT_ERROR` | 500 | CSV 导入失败 |
-| `NOT_FOUND` | 404 | 资源不存在（通用） |
+| `NO_FIELDS` | 400 | 没有要更新的字段 |
+| `INVALID_BODY` | 400 | 请求体格式不正确（如 POST /admin/terms 需要非空数组） |
+| `INVALID_FIELDS` | 400 | 请求体字段类型不合法 |
+| `INVALID_ORDER` | 400 | 排序数据格式错误 |
+| `INVALID_DATA` | 500 | 服务层判定请求体非对象（`services/用户提交.js` 抛出，经路由兜底为 `INTERNAL_ERROR`） |
+| `MISSING_PARAM` / `INVALID_PARAM` / `VALIDATION_ERROR` | 400 | `utils/验证器.js` 抛出，由 `server.js` 的 `ERROR_MAP` 前缀匹配转状态码 |
+| `DUPLICATE_KEY` | 400 | 学科标识已存在 |
+| `HAS_TERMS` | 400 | 学科下存在词条，无法删除 |
+| `GRAPH_ERROR` | 500 | 图谱节点/关系查询失败（`nodes`、`links` 共用同一个码） |
+| `STATS_ERROR` / `HEALTH_ERROR` / `FEEDBACK_ERROR` | 500 | 统计 / 健康检查 / 反馈失败 |
+| `SCENARIOS_ERROR` | 500 | 情景还原查询失败 |
+| `COMPARE_ERROR` / `CREATE_COMPARE_ERROR` / `UPDATE_COMPARE_ERROR` | 500 | 概念对比查询 / 创建 / 更新失败 |
+| `INDUSTRY_ERROR` / `INDUSTRY_CREATE_ERROR` / `INDUSTRY_DELETE_ERROR` / `INDUSTRY_DETAIL_ERROR` | 500 | 产业岗位操作失败 |
+| `CAREER_ERROR` / `CAREER_CREATE_ERROR` / `CAREER_DELETE_ERROR` / `CAREER_DETAIL_ERROR` | 500 | 职业解构操作失败 |
+| `ANTIBODY_ERROR` / `ANTIBODY_CREATE_ERROR` / `ANTIBODY_DELETE_ERROR` | 500 | 概念抗体操作失败 |
+| `GET_JOBS_ERROR` / `GET_JOB_ERROR` / `CREATE_JOB_ERROR` / `UPDATE_JOB_ERROR` / `DELETE_JOB_ERROR` | 500 | 高薪技术岗操作失败 |
+| `CREATE_STAGE_ERROR` / `CREATE_SKILL_ERROR` / `CREATE_CATEGORY_ERROR` | 500 | 创建阶段 / 技能 / 分类失败 |
 | `GET_CATEGORIES_ERROR` | 500 | 获取分类失败 |
-| `CREATE_CATEGORY_ERROR` | 500 | 创建分类失败 |
-| `GET_JOBS_ERROR` | 500 | 获取岗位数据失败 |
-| `CREATE_JOB_ERROR` | 500 | 创建岗位失败 |
-| `UPDATE_JOB_ERROR` | 500 | 更新岗位失败 |
-| `DELETE_JOB_ERROR` | 500 | 删除岗位失败 |
-| `CREATE_STAGE_ERROR` | 500 | 创建阶段失败 |
-| `CREATE_SKILL_ERROR` | 500 | 创建技能失败 |
-| `ANTIBODY_ERROR` | 500 | 抗体数据操作失败 |
-| `CAREER_ERROR` | 500 | 职业数据操作失败 |
-| `MAPPING_NOT_FOUND` | 404 | 学科映射不存在 |
-| `MAPPING_CREATE_ERROR` | 500 | 创建学科映射失败 |
-| `MAPPING_UPDATE_ERROR` | 500 | 更新学科映射失败 |
-| `MAPPING_DELETE_ERROR` | 500 | 删除学科映射失败 |
-| `CORRECTION_NOT_FOUND` | 404 | 纠错建议不存在 |
-| `CORRECTION_CREATE_ERROR` | 500 | 创建纠错建议失败 |
-| `CORRECTION_APPROVE_ERROR` | 500 | 审核纠错建议失败 |
-| `NEO4J_CONNECTION_ERROR` | 500 | Neo4j 数据库连接失败 |
-| `NEO4J_SYNC_ERROR` | 500 | Neo4j 数据同步失败 |
+| `EXPORT_ERROR` / `IMPORT_ERROR` | 500 | CSV 导出 / 导入失败 |
+| `BACKUP_ERROR` / `MIGRATE_ERROR` | 500 | 备份 / 数据库迁移失败 |
+| `RELOAD_ERROR` | 500 | 重载数据库失败 |
+| `SYNC_UNAVAILABLE` | 503 | Obsidian 同步服务未加载 |
+| `SYNC_ERROR` | 500 | Obsidian 全量同步失败 |
+| `AI_ERROR` | 500 | AI 路由未分类错误兜底 |
 
 ### 2.5 管理接口鉴权
 
@@ -178,10 +179,10 @@ token 值由 `backend/.env` 里的 `ADMIN_TOKEN` 环境变量定义。
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
 | `page` | number | 否 | 页码，默认 1 |
-| `pageSize` | number | 否 | 每页数量，默认 50 |
+| `pageSize` | number | 否 | 每页数量，默认 50，代码内上限 1000 |
 | `discipline` | string | 否 | 按学科过滤（学科名称，如 `物理学`） |
-| `keyword` | string | 否 | 关键词（名称/翻译/本质模糊匹配） |
-| `hot` | boolean | 否 | 是否只返回热门词条 |
+
+> 本接口**不支持** `keyword` / `hot` 参数（`routes/词条.js` 只解构 `page`、`pageSize`、`discipline`）；关键词搜索请用 `/api/v1/terms/search`，热门词条请用 `/api/v1/terms/hot`。
 
 **示例**：
 
@@ -203,7 +204,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
         "translation": "概率波",
         "essence": "...",
         "tip": "...",
-        "aliases": "[]",
+        "aliases": [],
         "hot": 0,
         "created_at": 1718000000000
       }
@@ -221,15 +222,17 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 **接口**：`GET /api/v1/terms/search`
 
-**限流**：600 请求/分钟
-**搜索引擎**：Meilisearch 优先，不可用时自动降级 SQLite LIKE 模糊搜索
+**限流**：600 请求/分钟（超限后封禁 10 分钟）
+**搜索引擎**：Meilisearch **未启用**，默认直接走 SQLite `LIKE`（匹配 `名称/翻译/本质/提示` 四列）；无需任何外部服务
 
 **参数**：
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| `q` | string | 是 | 搜索词 |
-| `limit` | number | 否 | 返回条数，默认 8 |
+| `q` | string | 是 | 搜索词，空值报 `MISSING_QUERY` |
+| `limit` | number | 否 | 返回条数，默认 20，代码内上限 50 |
+
+**返回**：`data = { results: [{ term, score, highlights }], total, query }`，`term` 为完整词条对象；SQLite LIKE 路径下 `score` 恒为 1、`highlights` 为 `[]`。
 
 **可能错误**：`MISSING_QUERY`
 
@@ -307,21 +310,17 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ## 4. 知识图谱
 
-> 数据源：Neo4j 4.4.40 图数据库（**未启用**，方向已搁置；数据曾由 SQLite 一次性同步）
-> 数据规模：19,703 词条节点、10 学科节点、18,000+ 关系
+> 数据源：SQLite `data/同物异名.db`（`services/知识图谱.js` 直接 `SELECT` `词条` 与 `图谱关系` 表，结果经 `services/缓存.js` 缓存），**与 Neo4j 无关**——Neo4j 方向**已放弃,不再启用**。
+> 数据规模（实测）：977 词条节点、10 学科节点、672 条关系。
+> 本节只有 `nodes`、`links` 两个端点；邻居遍历、最短路径、Cypher 查询等在 `routes/图数据库.js`（`/api/v1/graphdb`）中，该路由在 `server.js` 里已注释**未挂载**。
 
 ### 4.1 图谱节点
 
 **接口**：`GET /api/v1/graph/nodes`
 
-**说明**：返回所有图谱节点（Neo4j 查询）
+**说明**：返回**全部**词条节点（`SELECT 词条ID, 学科, 名称, 翻译, 热度 FROM 词条`），字段为 `{ id, name, discipline, color, radius, translation }`，`color` 由学科中文名在代码内查表得到。
 
-**参数**：
-
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `discipline` | string | 否 | 按学科过滤 |
-| `limit` | number | 否 | 返回数量限制 |
+**参数**：无。`routes/知识图谱.js` 未读取 `req.query`，传 `discipline`、`limit` 等参数**不会生效**。
 
 ---
 
@@ -329,36 +328,11 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 **接口**：`GET /api/v1/graph/links`
 
-**说明**：返回所有节点间的关系（Neo4j 查询）
+**说明**：返回 `图谱关系` 表全部记录，字段为 `{ source, target, label }`。
 
----
+**参数**：无（同上，查询参数不生效）。
 
-### 4.3 节点邻居查询
-
-**接口**：`GET /api/v1/graph/:id/neighbors`
-
-**说明**：查询指定节点的邻居节点（Neo4j 图遍历）
-
-**参数**：
-
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `depth` | number | 否 | 遍历深度，默认 1 |
-
----
-
-### 4.4 最短路径查询
-
-**接口**：`GET /api/v1/graph/path`
-
-**说明**：查询两个节点间的最短路径（Neo4j 图算法）
-
-**参数**：
-
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `from` | string | 是 | 起点节点 ID |
-| `to` | string | 是 | 终点节点 ID |
+**可能错误**：两者失败时统一返回 `GRAPH_ERROR`（500）。
 
 ---
 
@@ -383,6 +357,8 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 ```json
 {
   "id": "cmp-001",
+  "conceptA": "概念A",
+  "conceptB": "概念B",
   "title": "对比标题",
   "concept_a_name": "概念A",
   "concept_a_discipline": "计算机",
@@ -401,6 +377,8 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 }
 ```
 
+> ⚠ **已知坑（字段命名不一致）**：路由的存在性校验读的是驼峰 `conceptA` / `conceptB`（缺失即 400 `MISSING_FIELDS`），而 `services/概念对比.js` 落库时解构的却是下划线 `concept_a_*` / `concept_b_*`。因此请求体**必须同时**带 `conceptA`、`conceptB` 与实际的 `concept_a_name` 等字段，否则会被拒绝或写入空值。`id` 省略时自动生成 `cmp_<时间戳>`。
+
 ---
 
 ### 5.3 更新对比（管理）
@@ -409,7 +387,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 **鉴权**：需要 `x-admin-token`
 
-**可能错误**：`MISSING_ID`
+**可能错误**：`NO_FIELDS`（请求体为空对象）、`UPDATE_COMPARE_ERROR`
 
 ---
 
@@ -744,7 +722,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
   "term1": "术语1",
   "term2": "术语2",
   "explanation": "解释",
-  "example": "示例",
+  "examples": "示例",
   "contact": "联系方式"
 }
 ```
@@ -759,12 +737,14 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
   "term_translation": "翻译",
   "term_essence": "本质",
   "term_tip": "提示",
-  "term_aliases": "[]",
+  "term_aliases": ["别名1", "别名2"],
   "contact": "联系方式"
 }
 ```
 
-**可能错误**：`MISSING_FIELDS`
+**说明**：`submission_type` 省略时默认 `pair`（`validateEnum` 取枚举首项），只接受 `pair` / `term`；`term` 分支必填 `term_name`、`term_discipline`；`term_aliases` 只有传数组才会保留，传字符串会被静默替换为 `[]`。
+
+**可能错误**：`MISSING_FIELDS`（400，仅当 service 抛出的错误文本恰为该字符串）、`INTERNAL_ERROR`（500；`submission_type` 非法或必填项缺失时 `validateEnum` / `validateString` 抛的是 `INVALID_PARAM:*` / `MISSING_PARAM:*`，路由未映射，故实际落到这里）
 
 ---
 
@@ -843,15 +823,17 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-## 12. 学科映射管理
+## 12. 社区协作 - 学科子领域映射
 
-> 管理 19 个学科词库表到 10 个核心学科的映射关系
+> 路由文件：`backend/routes/社区协作.js`，在 `server.js` 中挂载为 `/api/v1/community`（同时别名挂载 `/twym/api/v1/community`）。
+> 数据表：`学科子领域映射`（字段：`子领域名称`(主键) / `核心学科` / `词条数量` / `显示顺序` / `描述` / `创建时间` / `更新时间`）。
+> 本模块失败响应为 `{ success: false, message: "..." }`，**没有 `error.code`**。
 
 ### 12.1 获取全部映射
 
-**接口**：`GET /api/v1/discipline-mapping`
+**接口**：`GET /api/v1/community/mapping`
 
-**说明**：返回所有学科子领域到核心学科的映射关系
+**说明**：`LEFT JOIN 学科` 附带核心学科颜色，按 `核心学科, 显示顺序, 子领域名称` 排序
 
 **返回**：
 
@@ -860,10 +842,14 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
   "success": true,
   "data": [
     {
-      "id": "math-001",
-      "sub_discipline": "数学",
-      "core_discipline": "数学",
-      "description": "..."
+      "子领域名称": "天文学",
+      "核心学科": "物理学",
+      "词条数量": 312,
+      "显示顺序": 3,
+      "描述": "天文学词库，归属物理学",
+      "创建时间": "2025-...",
+      "更新时间": "2025-...",
+      "学科颜色": "#5B7BA0"
     }
   ]
 }
@@ -871,19 +857,26 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 12.2 按核心学科查询
+### 12.2 按核心学科分组
 
-**接口**：`GET /api/v1/discipline-mapping/core/:discipline`
+**接口**：`GET /api/v1/community/mapping/grouped`
 
-**说明**：查询某个核心学科下包含的所有子领域
+**返回**：`data` 是以核心学科名为 key 的对象
 
-**可能错误**：`NOT_FOUND`
+```json
+{
+  "success": true,
+  "data": {
+    "数学": [ { "子领域名称": "...", "核心学科": "数学" } ]
+  }
+}
+```
 
 ---
 
 ### 12.3 创建映射（管理）
 
-**接口**：`POST /api/v1/discipline-mapping`
+**接口**：`POST /api/v1/community/mapping`
 
 **鉴权**：需要 `x-admin-token`
 
@@ -891,153 +884,140 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ```json
 {
-  "sub_discipline": "子领域名称",
-  "core_discipline": "核心学科名称",
-  "description": "描述说明"
+  "子领域名称": "子领域名称",
+  "核心学科": "核心学科名称",
+  "显示顺序": 99,
+  "描述": "描述说明"
 }
 ```
 
-**可能错误**：`MISSING_FIELDS`, `DUPLICATE_KEY`
+**说明**：`显示顺序` 默认 `99`、`描述` 默认 `""`；`子领域名称` 是主键，重复会走 SQLite 约束错误 → 500 `{success:false,message}`（路由未特判 `DUPLICATE`）。
 
 ---
 
 ### 12.4 更新映射（管理）
 
-**接口**：`PUT /api/v1/discipline-mapping/:id`
+**接口**：`PUT /api/v1/community/mapping/:子领域名称`
 
 **鉴权**：需要 `x-admin-token`
 
-**可能错误**：`MISSING_ID`, `NOT_FOUND`, `NO_FIELDS`
+**请求体**：`{ "核心学科": "...", "显示顺序": 1, "描述": "..." }`（`显示顺序` / `描述` 走 `COALESCE`，省略即保留原值）
+
+> ⚠ 当前恒返回 404（中文路径参数名 + path-to-regexp 0.1.13 已知问题）：`routes/社区协作.js` 里路径写成 `'/mapping/:子领域名称'`，该版本正则不识别中文参数名，编译后 `keys = []`，路由永不匹配，请求会落到全局 404。代码行为如此，文档按现状记录，未做修改。
 
 ---
 
 ### 12.5 删除映射（管理）
 
-**接口**：`DELETE /api/v1/discipline-mapping/:id`
+**接口**：`DELETE /api/v1/community/mapping/:子领域名称`
 
 **鉴权**：需要 `x-admin-token`
 
-**可能错误**：`MISSING_ID`, `NOT_FOUND`
+> ⚠ 当前恒返回 404（中文路径参数名 + path-to-regexp 0.1.13 已知问题）
 
 ---
 
-## 13. 词条纠错建议
+## 13. 社区协作 - 词条纠错建议
 
-> 社区协作第二层：用户提交词条纠错建议，管理员审核后生效
+> 路由文件：`backend/routes/社区协作.js`，挂载前缀同第 12 节（`/api/v1/community`）。
+> 数据表：`词条纠错建议`（字段：`建议ID`(自增主键) / `词条ID` / `词条名称` / `纠错类型`(默认 `学科归属`) / `建议内容` / `提交者标识`(默认 `匿名`) / `状态`(默认 `待审核`) / `审核备注` / `审核时间` / `创建时间`），由 `db/入口.js` 启动期 `CREATE TABLE IF NOT EXISTS` 建表。
+> 失败响应统一为 `{ success: false, message: "..." }`（500），无 `error.code`；路由不做任何必填校验，缺字段直接落到 SQLite。
 
 ### 13.1 提交纠错建议
 
-**接口**：`POST /api/v1/corrections`
+**接口**：`POST /api/v1/community/suggestions`
 
-**说明**：用户提交词条纠错或补充建议
+**鉴权**：公开
 
 **请求体**：
 
 ```json
 {
-  "term_id": "词条ID",
-  "correction_type": "error",
-  "field_name": "翻译",
-  "current_value": "当前内容",
-  "suggested_value": "建议内容",
-  "reason": "纠错理由",
-  "contact": "联系方式（可选）"
+  "词条ID": "math_极限",
+  "词条名称": "极限",
+  "纠错类型": "学科归属",
+  "建议内容": "建议改归到分析学",
+  "提交者标识": "匿名"
 }
 ```
 
-**correction_type 可选值**：`error`（错误纠正）/ `improvement`（改进建议）/ `addition`（内容补充）
+**返回**：`{ "success": true, "message": "建议已提交，感谢您的贡献", "data": { "建议ID": 1 } }`
 
-**可能错误**：`MISSING_FIELDS`, `TERM_NOT_FOUND`
-
----
-
-### 15.2 我的纠错记录
-
-**接口**：`GET /api/v1/corrections/mine`
-
-**参数**：
-
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `contact` | string | 是 | 联系方式标识 |
+**说明**：`纠错类型` 与 `提交者标识` 省略时用上述默认值；`纠错类型` 无枚举校验，任意字符串均可入库。
 
 ---
 
-### 15.3 管理列表（管理）
+### 13.2 建议列表（管理）
 
-**接口**：`GET /api/v1/corrections/admin`
+**接口**：`GET /api/v1/community/suggestions`
 
 **鉴权**：需要 `x-admin-token`
 
 **参数**：
 
-| 参数 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `status` | string | 否 | 状态过滤：pending/approved/rejected |
-| `page` | number | 否 | 页码，默认 1 |
-| `pageSize` | number | 否 | 每页数量，默认 20 |
+| 参数 | 类型 | 必填 | 默认 | 说明 |
+|------|------|------|------|------|
+| `状态` | string | 否 | `待审核` | 状态过滤，取值 `待审核` / `已通过` / `已拒绝`；想取全部必须显式传空 `?状态=`（默认值非空，过滤条件恒成立） |
+| `纠错类型` | string | 否 | — | 按纠错类型精确过滤 |
+| `page` | number | 否 | 1 | 页码 |
+| `limit` | number | 否 | 20 | 每页数量 |
 
----
-
-### 15.4 审核通过（管理）
-
-**接口**：`POST /api/v1/corrections/:id/approve`
-
-**鉴权**：需要 `x-admin-token`
-
-**说明**：审核通过并自动更新词条内容，同步到 Neo4j
-
-**请求体**：
+**返回**：分页字段在**顶层**而非 `data` 内：
 
 ```json
 {
-  "review_note": "审核备注"
+  "success": true,
+  "data": [ { "建议ID": 1, "状态": "待审核" } ],
+  "total": 0,
+  "page": 1,
+  "limit": 20
 }
 ```
 
-**可能错误**：`MISSING_ID`, `NOT_FOUND`
-
 ---
 
-### 15.5 审核拒绝（管理）
+### 13.3 纠错统计
 
-**接口**：`POST /api/v1/corrections/:id/reject`
+**接口**：`GET /api/v1/community/suggestions/stats`
 
-**鉴权**：需要 `x-admin-token`
+**鉴权**：公开
 
-**请求体**：
+**返回**：`data` 为按状态分组数组（无数据时为空数组，不会补零）
 
 ```json
 {
-  "reject_reason": "拒绝理由"
+  "success": true,
+  "data": [ { "状态": "待审核", "数量": 3 } ]
 }
 ```
 
-**可能错误**：`MISSING_ID`, `NOT_FOUND`
-
 ---
 
-### 15.6 状态统计（管理）
+### 13.4 审核建议（管理）
 
-**接口**：`GET /api/v1/corrections/admin/stats`
+**接口**：`PUT /api/v1/community/suggestions/:建议ID`
 
 **鉴权**：需要 `x-admin-token`
 
-**说明**：返回各状态的纠错建议数量统计
+**请求体**：`{ "状态": "已通过", "审核备注": "已核实" }`
+
+**说明**：审核仅更新建议表自身状态，**不会回写 `词条` 表**，也不存在任何图数据库同步（Neo4j 已放弃,不再启用）。
+
+> ⚠ 当前恒返回 404（中文路径参数名 + path-to-regexp 0.1.13 已知问题）
 
 ---
 
 ## 14. 统计与健康检查
 
-### 16.1 全局统计
+### 14.1 全局统计
 
 **接口**：`GET /api/v1/stats`
 
-**说明**：返回全局统计数据（词条数、学科数、对比数、情景数等）
+**说明**：返回 `services/统计.js#getStats()` 的结果：`totalTerms`（= 主表 `词条` 977 + 19 张学科分表汇总）、`mainTerms`、`subjectTerms`、`hotTerms`、`totalLinks`、`totalComparisons`、`totalScenarios`、`byDiscipline`（学科名 → 词条数的对象）。学科分表不存在时逐表 `try/catch` 跳过。
 
 ---
 
-### 16.2 健康检查
+### 14.2 健康检查
 
 **接口**：`GET /api/v1/stats/health`
 
@@ -1048,15 +1028,16 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
   "success": true,
   "data": {
     "status": "ok",
-    "timestamp": 1718000000000,
-    "uptime": 3600
+    "version": "1.0.0",
+    "timestamp": "2025-01-01T00:00:00.000Z",
+    "cache": { "keys": 0, "hits": 0, "misses": 0, "hitRate": "0.000" }
   }
 }
 ```
 
 ---
 
-### 16.3 提交用户反馈
+### 14.3 提交用户反馈
 
 **接口**：`POST /api/v1/stats/feedback`
 
@@ -1066,12 +1047,12 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 {
   "type": "bug",
   "content": "反馈内容",
-  "term_id": "可选-相关词条ID",
+  "termId": "可选-相关词条ID",
   "contact": "可选-联系方式"
 }
 ```
 
-**type 可选值**：`bug` / `suggest` / `other`
+**说明**：仅 `type` 与 `content` 必填；`type` 无枚举校验，任意字符串都会原样入库；字段名是驼峰 `termId`，传 `term_id` 会被忽略。
 
 **可能错误**：`MISSING_FIELDS`
 
@@ -1188,21 +1169,23 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ```json
 {
-  "id": "数学",
   "name": "数学",
   "color": "#5B7BA0",
-  "description": "学科描述",
-  "display_order": 1
+  "description": "学科描述"
 }
 ```
 
-**可能错误**：`MISSING_FIELDS`, `DUPLICATE_KEY`
+**说明**：只读 `name` / `color` / `description` 三个字段；`学科名称` 即主键（响应里的 `id` 与 `name` 相同），`display_order` 由当前学科总数推导，请求体里传 `id` / `display_order` 会被忽略。`color` 缺省为 `#6B7B5E`。
+
+**可能错误**：`MISSING_FIELDS`（缺 `name`）, `DUPLICATE_KEY`
 
 ---
 
 ### 16.3 更新单个学科
 
 **接口**：`PUT /api/v1/admin/disciplines/:id`
+
+**说明**：`:id` 即 `学科名称`（中文名）。service 只白名单接收 `name`、`color` 两个字段，传 `description` / `display_order` 会被静默丢弃。
 
 **可能错误**：`NO_FIELDS`
 
@@ -1212,16 +1195,15 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 **接口**：`PUT /api/v1/admin/disciplines/order`
 
-**请求体**：
+**请求体**：`order` 是**学科名称字符串数组**，数组下标 +1 即为新的 `显示顺序`
 
 ```json
 {
-  "order": [
-    { "id": "math", "order": 1 },
-    { "id": "physics", "order": 2 }
-  ]
+  "order": ["数学", "物理学", "计算机"]
 }
 ```
+
+**说明**：注册顺序在 `/disciplines/:id` 之前，因此不会被 `:id` 截获。非数组 → 400 `INVALID_ORDER`；空数组直接返回 `{ updated: 0 }` 不报错。
 
 **可能错误**：`INVALID_ORDER`
 
