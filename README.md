@@ -26,7 +26,7 @@
 │   ├── utils/          # 工具函数
 │   └── server.js       # 入口
 ├── data/               # 数据库文件（三个独立 .db 文件）
-│   ├── 同物异名.db     # 主数据库 SQLite(精加工工作台)
+│   ├── 同物异名.db     # 主数据库 SQLite(精加工工作台) 51 表 / 19,068 行（词条 977）
 │   ├── 学科词库.db     # 学科词库 (19 表 / 7,841 行)
 │   └── 语义词典.db     # 语义词典 (4 表 / 8,598 行)
 └── docs/               # 项目文档
@@ -39,8 +39,8 @@
 cd backend && npm install --registry=https://registry.npmmirror.com && npm start
 # → http://localhost:3000
 
-# Neo4j 图数据库(可选,默认未启用;图数据库方向已搁置)
-# 如需实验:安装 Neo4j 4.4、配置 .env 的 NEO4J_PASSWORD,再 cd backend && npm run sync:neo4j
+# 图数据库:不需要。Neo4j 方向已放弃、不再启用,图谱数据直接读 SQLite
+# （残留的 db/图数据库.js、db/全量迁移到Neo4j.js 与 npm run sync:neo4j 为遗留产物,不要执行）
 
 # 前端(新终端)
 cd app && npm install --registry=https://registry.npmmirror.com && npm run dev
