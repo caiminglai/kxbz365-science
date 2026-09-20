@@ -12,6 +12,10 @@ RUN npx vite build
 # 工具链只存在于本中间阶段，不进最终运行镜像。
 FROM node:24-slim AS backend-deps
 
+# 容器内 apt 默认走 deb.debian.org，国内（含阿里云 ECS）常整段卡死无输出，换阿里云公网源
+RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g; s|security.debian.org|mirrors.aliyun.com|g' \
+      /etc/apt/sources.list /etc/apt/sources.list.d/debian.sources 2>/dev/null || true
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 make g++ \
     && rm -rf /var/lib/apt/lists/*
