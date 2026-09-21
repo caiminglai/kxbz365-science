@@ -56,7 +56,7 @@ cd app && npm install --registry=https://registry.npmmirror.com && npm run dev
 
 - [项目总览](./docs/项目总览.md) -- 技术栈、目录结构、数据库概览、npm scripts
 - [代码参考](./docs/代码参考.md) -- 前后端架构、数据库设计、依赖、错误码
-- [部署运维](./docs/部署运维.md) -- 服务器部署、Docker Compose + Caddy 配置、问题排查
+- 服务器部署与运维：见编排仓库的 `SERVER-OPS.md`（三站共用，本机 `E:\website\compose\SERVER-OPS.md`）
 - [API 接口文档](./docs/API接口文档.md) -- REST API 端点参考
 
 ## 许可证
