@@ -50,7 +50,7 @@
 | `/api/v1/antibody` | 概念抗体 | ✅ 活跃 | 部分需要 |
 | `/api/v1/jobs` | 高薪技术岗（分类、岗位、阶段、技能） | ✅ 活跃 | 部分需要 |
 | `/api/v1/submissions` | 用户提交同物异名 | ✅ 活跃 | 部分需要 |
-| `/api/v1/community` | 社区协作：学科子领域映射 + 词条纠错建议 | ✅ 活跃（3 条带中文路径参数的路由 ⚠ 恒 404，见第 12/13 节） | 部分需要 |
+| `/api/v1/community` | 社区协作：学科子领域映射 + 词条纠错建议 | ✅ 活跃（原 3 条中文路径参数死路由已于 2026-09-21 删除） | 部分需要 |
 | `/api/v1/domains` | 学科词库（19 张分表，独立 SQLite 库） | ✅ 活跃 | 部分需要 |
 | `/api/v1/semantics` | 语义词典（同义/反义/简称/上下位，独立 SQLite 库） | ✅ 活跃 | 公开 |
 | `/api/v1/stats` | 统计 + 健康检查 + 用户反馈 | ✅ 活跃 | 公开 |
@@ -894,28 +894,6 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 12.4 更新映射（管理）
-
-**接口**：`PUT /api/v1/community/mapping/:子领域名称`
-
-**鉴权**：需要 `x-admin-token`
-
-**请求体**：`{ "核心学科": "...", "显示顺序": 1, "描述": "..." }`（`显示顺序` / `描述` 走 `COALESCE`，省略即保留原值）
-
-> ⚠ 当前恒返回 404（中文路径参数名 + path-to-regexp 0.1.13 已知问题）：`routes/社区协作.js` 里路径写成 `'/mapping/:子领域名称'`，该版本正则不识别中文参数名，编译后 `keys = []`，路由永不匹配，请求会落到全局 404。代码行为如此，文档按现状记录，未做修改。
-
----
-
-### 12.5 删除映射（管理）
-
-**接口**：`DELETE /api/v1/community/mapping/:子领域名称`
-
-**鉴权**：需要 `x-admin-token`
-
-> ⚠ 当前恒返回 404（中文路径参数名 + path-to-regexp 0.1.13 已知问题）
-
----
-
 ## 13. 社区协作 - 词条纠错建议
 
 > 路由文件：`backend/routes/社区协作.js`，挂载前缀同第 12 节（`/api/v1/community`）。
@@ -992,27 +970,13 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 13.4 审核建议（管理）
-
-**接口**：`PUT /api/v1/community/suggestions/:建议ID`
-
-**鉴权**：需要 `x-admin-token`
-
-**请求体**：`{ "状态": "已通过", "审核备注": "已核实" }`
-
-**说明**：审核仅更新建议表自身状态，**不会回写 `词条` 表**，也不存在任何图数据库同步（Neo4j 已放弃,不再启用）。
-
-> ⚠ 当前恒返回 404（中文路径参数名 + path-to-regexp 0.1.13 已知问题）
-
----
-
 ## 14. 统计与健康检查
 
 ### 14.1 全局统计
 
 **接口**：`GET /api/v1/stats`
 
-**说明**：返回 `services/统计.js#getStats()` 的结果：`totalTerms`（= 主表 `词条` 977 + 19 张学科分表汇总）、`mainTerms`、`subjectTerms`、`hotTerms`、`totalLinks`、`totalComparisons`、`totalScenarios`、`byDiscipline`（学科名 → 词条数的对象）。学科分表不存在时逐表 `try/catch` 跳过。
+**说明**：返回 `services/统计.js#getStats()` 的结果：`totalTerms`（= 主表 `词条` 977 + 独立库 19 张学科分表汇总 7841）、`mainTerms`、`subjectTerms`、`hotTerms`、`totalLinks`、`totalComparisons`、`totalScenarios`、`byDiscipline`（学科名 → 词条数的对象）。学科分表计数走独立库 `data/学科词库.db`（只读连接），与 `/api/v1/domains/stats` 同口径；该库缺失时才回退主库内的历史副本。学科分表不存在时逐表 `try/catch` 跳过。
 
 ---
 

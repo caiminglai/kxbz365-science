@@ -37,23 +37,6 @@ router.get('/mapping/grouped', (req, res) => {
   }
 });
 
-// 更新子领域的核心学科归属
-router.put('/mapping/:子领域名称', adminAuth, (req, res) => {
-  try {
-    const { 核心学科, 显示顺序, 描述 } = req.body;
-    const { 子领域名称 } = req.params;
-    prepare(`
-      UPDATE 学科子领域映射
-      SET 核心学科 = ?, 显示顺序 = COALESCE(?, 显示顺序), 描述 = COALESCE(?, 描述),
-          更新时间 = CURRENT_TIMESTAMP
-      WHERE 子领域名称 = ?
-    `).run(核心学科, 显示顺序 || null, 描述 || null, 子领域名称);
-    res.json({ success: true, message: '更新成功' });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
 // 新增子领域
 router.post('/mapping', adminAuth, (req, res) => {
   try {
@@ -63,16 +46,6 @@ router.post('/mapping', adminAuth, (req, res) => {
       VALUES (?, ?, ?, ?)
     `).run(子领域名称, 核心学科, 显示顺序, 描述);
     res.json({ success: true, message: '添加成功' });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// 删除子领域
-router.delete('/mapping/:子领域名称', adminAuth, (req, res) => {
-  try {
-    prepare('DELETE FROM 学科子领域映射 WHERE 子领域名称 = ?').run(req.params.子领域名称);
-    res.json({ success: true, message: '删除成功' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -117,21 +90,6 @@ router.get('/suggestions', adminAuth, (req, res) => {
     `).all(...params, Number(limit), offset);
     const total = prepare(`SELECT COUNT(*) as cnt FROM 词条纠错建议 ${where}`).get(...params).cnt;
     res.json({ success: true, data: list, total, page: Number(page), limit: Number(limit) });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// 审核纠错建议
-router.put('/suggestions/:建议ID', adminAuth, (req, res) => {
-  try {
-    const { 状态, 审核备注 = '' } = req.body;
-    prepare(`
-      UPDATE 词条纠错建议
-      SET 状态 = ?, 审核备注 = ?, 审核时间 = CURRENT_TIMESTAMP
-      WHERE 建议ID = ?
-    `).run(状态, 审核备注, req.params.建议ID);
-    res.json({ success: true, message: '审核完成' });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

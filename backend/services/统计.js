@@ -1,3 +1,5 @@
+const path = require("path");
+const Database = require("better-sqlite3");
 const { prepare } = require("../db/入口");
 const { markDirty } = require("../db/入口");
 const cache = require("./缓存");
@@ -10,6 +12,15 @@ const SUBJECT_TABLES = [
   '计算机业', '通信工程', '金融财经', '钢铁冶金'
 ];
 
+// 学科分表的正式数据在独立库 data/学科词库.db（导入时按 权重≥2 过滤，比主库内的历史副本少 357 条权重=1 的词）。
+// 计数读独立库才与 /api/v1/domains/* 同口径；该库缺失时回退主库副本，不让统计接口挂掉。
+let lexDb = null;
+try {
+  lexDb = new Database(path.join(__dirname, "..", "..", "data", "学科词库.db"), { readonly: true });
+} catch (_错误) {
+  console.warn("[统计] 学科词库.db 未找到，学科词数回退主库口径");
+}
+
 function getStats() {
   return cache.remember("stats_summary", () => {
     // 主词条表数量
@@ -19,8 +30,8 @@ function getStats() {
     let subjectTerms = 0;
     SUBJECT_TABLES.forEach(tableName => {
       try {
-        const count = prepare(`SELECT COUNT(*) as c FROM "${tableName}"`).get().c;
-        subjectTerms += count;
+        const sql = `SELECT COUNT(*) as c FROM "${tableName}"`;
+        subjectTerms += (lexDb ? lexDb.prepare(sql) : prepare(sql)).get().c;
       } catch (e) {
         // 表不存在时跳过
       }
