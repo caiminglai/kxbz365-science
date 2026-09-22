@@ -78,7 +78,7 @@ function batchCreateTerms(items) {
     }
     exec("COMMIT");
   } catch (err) {
-    try { exec("ROLLBACK"); } catch {}
+    try { exec("ROLLBACK"); } catch (rbErr) { console.warn("[词条] 批量写入失败后回滚也失败:", rbErr.message); }
     throw err;
   }
 

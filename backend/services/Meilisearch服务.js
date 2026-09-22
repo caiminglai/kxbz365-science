@@ -103,13 +103,13 @@ async function fullSync(terms) {
     await c.swapIndexes([{ indexes: [INDEX_NAME, tmpIndexName] }]);
   } catch (e) {
     // 交换失败（例如主索引尚不存在），回退到直接写入主索引
-    try { await c.deleteIndex(INDEX_NAME); } catch {}
+    try { await c.deleteIndex(INDEX_NAME); } catch (delErr) { console.warn("[Meilisearch] 回退时清空主索引失败:", delErr.message); }
     const mainIndex = c.index(INDEX_NAME);
     await mainIndex.addDocuments(documents, { primaryKey: "词条ID" });
   }
 
   // 清理临时索引（现在包含旧数据）
-  try { await c.deleteIndex(tmpIndexName); } catch {}
+  try { await c.deleteIndex(tmpIndexName); } catch (delErr) { console.warn("[Meilisearch] 清理临时索引失败:", delErr.message); }
 
   console.log("[Meilisearch] 全量同步完成");
 
