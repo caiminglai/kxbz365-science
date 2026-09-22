@@ -158,6 +158,11 @@ if (fs.existsSync(distPath)) {
     if (req.path.startsWith("/api/")) {
       return next();
     }
+    // 带扩展名却没被 express.static 命中 = 文件真的不存在，必须交给下面的 404 处理器。
+    // 否则微信业务域名校验文件（WW_verify_xxx.txt）缺失时会被 index.html 顶替成 200，平台侧误判校验通过。
+    if (/\.[a-zA-Z0-9]{1,8}$/.test(req.path)) {
+      return next();
+    }
     res.type("html");
     res.sendFile(path.join(distPath, "index.html"));
   });
