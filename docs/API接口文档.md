@@ -1288,12 +1288,13 @@ const categories = await getJobCategories()
 | [岗位.js](file:///e:/website/1.my-first-website/backend/routes/高薪技术岗.js) | `/api/v1/jobs` | 高薪技术岗 |
 | [统计.js](file:///e:/website/1.my-first-website/backend/routes/统计.js) | `/api/v1/stats` | 统计 + 健康检查 + 用户反馈 |
 | [提交.js](file:///e:/website/1.my-first-website/backend/routes/用户提交.js) | `/api/v1/submissions` | 用户提交 |
-| [学科映射.js](file:///e:/website/1.my-first-website/backend/routes/学科映射.js) | `/api/v1/discipline-mapping` | 学科子领域映射管理（19表→10学科） |
-| [纠错建议.js](file:///e:/website/1.my-first-website/backend/routes/纠错建议.js) | `/api/v1/corrections` | 词条纠错建议 |
+| [社区协作.js](file:///e:/website/1.my-first-website/backend/routes/社区协作.js) | `/api/v1/community` | 学科子领域映射 + 词条纠错建议（两节共用这一个文件） |
+| [学科词库.js](file:///e:/website/1.my-first-website/backend/routes/学科词库.js) | `/api/v1/domains` | 学科词库（19 张分表，独立 SQLite 库） |
+| [重载数据库.js](file:///e:/website/1.my-first-website/backend/routes/重载数据库.js) | `/api/v1/admin/reload-db` | 从磁盘重载三个库 |
 | [管理.js](file:///e:/website/1.my-first-website/backend/routes/管理.js) | `/api/v1/admin` | 词条/学科/备份/仪表盘/图谱关系 |
 | [AI.js](file:///e:/website/1.my-first-website/backend/routes/AI问答.js) | `/api/v1/ai` | AI 问答 |
 | [语义.js](file:///e:/website/1.my-first-website/backend/routes/语义.js) | `/api/v1/semantics` | 语义词典（同义/反义/简称/抽象） |
 
 ---
 
-*更新日期：2026-07-11*
+*更新日期：2026-09-24（本节路由索引按 `server.js` 挂载逐条校对）*
