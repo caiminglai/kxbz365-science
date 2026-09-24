@@ -1228,16 +1228,6 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-### 17.5 数据库迁移
-
-**接口**：`POST /api/v1/admin/migrate`
-
-**说明**：执行在线数据库迁移（不需要重启服务）
-
-**可能错误**：`MIGRATE_ERROR`
-
----
-
 ## 18. 管理后台 - 内容模块
 
 > 所有接口均需要 `x-admin-token`

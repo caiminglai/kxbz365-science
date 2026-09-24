@@ -3,7 +3,6 @@ const graphDb = require("../db/图谱");
 const { prepare, markDirty } = require("../db/入口");
 const cache = require("./缓存");
 const meili = require("./Meilisearch服务");
-const { parsePagination, validateString, validateId, validateEnum } = require("../utils/验证器");
 const { CACHE_KEYS, buildPageKey, buildCacheKey } = require("../utils/缓存键");
 
 function getTerms(page = 1, pageSize = 50, discipline) {

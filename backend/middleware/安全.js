@@ -216,25 +216,6 @@ function sqlInjectionCheck(req, res, next) {
   next();
 }
 
-// ===== 6. IP白名单（可选，最高安全级别用）=====
-
-function ipWhitelist(allowedIPs) {
-  return (req, res, next) => {
-    const ip = req.ip || req.connection.remoteAddress;
-    // 本地IP总是允许
-    if (ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1") {
-      return next();
-    }
-    if (!allowedIPs.includes(ip)) {
-      return res.status(403).json({
-        success: false,
-        error: { code: "IP_NOT_ALLOWED", message: "IP不在白名单中" },
-      });
-    }
-    next();
-  };
-}
-
 module.exports = {
   rateLimiter,
   createRateLimiter,
@@ -244,5 +225,4 @@ module.exports = {
   bodySizeLimit,
   adminAuth,
   sqlInjectionCheck,
-  ipWhitelist,
 };

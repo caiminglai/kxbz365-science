@@ -43,37 +43,6 @@ function validateRequired(body, fields) {
   return null;
 }
 
-// 在线数据库迁移（不需要重启）
-router.post("/migrate", (req, res) => {
-  try {
-    const { exec } = require("../db/入口");
-    // comparisons.relationship_type
-    const cmpSql = exec("SELECT sql FROM sqlite_master WHERE type='table' AND name='comparisons'");
-    const cmpExists = cmpSql.length > 0 && cmpSql[0].values.length > 0;
-    if (cmpExists && !cmpSql[0].values[0][0].includes("relationship_type")) {
-      exec("ALTER TABLE comparisons ADD COLUMN relationship_type TEXT DEFAULT '关联性'");
-    }
-    // disciplines.description
-    const discSql = exec("SELECT sql FROM sqlite_master WHERE type='table' AND name='disciplines'");
-    const discExists = discSql.length > 0 && discSql[0].values.length > 0;
-    if (discExists && !discSql[0].values[0][0].includes("description")) {
-      exec("ALTER TABLE disciplines ADD COLUMN description TEXT DEFAULT ''");
-    }
-    // terms.aliases
-    const termsSql = exec("SELECT sql FROM sqlite_master WHERE type='table' AND name='terms'");
-    const termsExists = termsSql.length > 0 && termsSql[0].values.length > 0;
-    if (termsExists && !termsSql[0].values[0][0].includes("aliases")) {
-      exec("ALTER TABLE terms ADD COLUMN aliases TEXT DEFAULT '[]'");
-    }
-    const { markDirty, saveDB } = require("../db/入口");
-    markDirty();
-    saveDB();
-    res.json({ success: true, message: "数据库迁移完成" });
-  } catch (error) {
-    res.status(500).json({ success: false, error: { code: "MIGRATE_ERROR", message: error.message } });
-  }
-});
-
 router.get("/terms", (req, res) => {
   try {
     const { page, pageSize, search, discipline } = req.query;

@@ -1,7 +1,7 @@
 const { prepare, exec, markDirty } = require("../db/入口");
 const graphDb = require("../db/图谱");
 const cache = require("./缓存");
-const { validateString, validateId, validateEnum } = require("../utils/验证器");
+const { validateString, validateEnum } = require("../utils/验证器");
 
 let schemaInitialized = false;
 
