@@ -428,7 +428,9 @@ export default function ConceptGraph({
     const timeoutId = window.setTimeout(() => {
       try {
         URL.revokeObjectURL(url)
-      } catch {}
+      } catch {
+        // 超时分支上这个 object URL 已经作废，revoke 失败没有可恢复的动作
+      }
       toast.error('图谱导出超时，可能是浏览器安全策略限制')
     }, 8000)
 
