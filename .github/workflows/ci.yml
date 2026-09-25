@@ -19,7 +19,8 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 与 Dockerfile 的运行时对齐（node:24-slim），CI 测一个线上不用的版本没意义
+          node-version: 24
           cache: npm
           cache-dependency-path: app/package-lock.json
 
