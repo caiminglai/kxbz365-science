@@ -29,6 +29,7 @@ export const API_ENDPOINTS = {
   comparisons: '/api/v1/comparisons',
   comparisonById: (id: string) => `/api/v1/comparisons/${id}`,
   scenarios: '/api/v1/scenarios',
+  conceptAntibodies: '/api/v1/concept-antibodies',
   submissions: '/api/v1/submissions',
   submissionsAdmin: '/api/v1/submissions/admin',
   approveSubmission: (id: number) => `/api/v1/submissions/admin/${id}/approve`,

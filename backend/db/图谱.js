@@ -1,3 +1,10 @@
+/**
+ * 图谱数据层 —— 只有"边"落库（图谱关系 表），节点是算出来的：getNodes 直接读 词条 LEFT JOIN 学科 取学科颜色
+ * 导出 getNodes / getLinks / addLink / deleteLink / deleteLinksByTermId，被 services/词条、services/管理、services/用户提交 使用
+ * 图谱关系 没有外键约束，级联删除全靠调用方：删词条的路径必须显式调 deleteLinksByTermId，新加删除入口时忘了就会留下悬空节点ID
+ * addLink 用 INSERT OR IGNORE，靠 schema 里的 UNIQUE(源节点ID, 目标节点ID) 保证同一条边重复添加不报错、也不产生重复边
+ */
+
 const { prepare } = require("./入口");
 
 function getNodes() {

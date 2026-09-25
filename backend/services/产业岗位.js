@@ -1,3 +1,11 @@
+/**
+ * 产业岗位服务 —— 产业拆解 / 产业链环节 / 产业岗位 三张表的 SQL 访问层
+ * 导出 getIndustries / getIndustryDetail / createIndustry / deleteIndustry，仅被 routes/产业岗位 调用
+ * createIndustry 用 INSERT OR REPLACE：同 产业ID 会整行覆盖，不是局部更新
+ * deleteIndustry 手工逐表 DELETE 三张表（没靠外键级联），以后加子表必须记得同步补一条
+ * 读路径没接 services/缓存，跟 知识图谱/情景还原 不一样，这两个读接口每次都真打库
+ */
+
 const { prepare } = require("../db/入口");
 const { markDirty } = require("../db/入口");
 

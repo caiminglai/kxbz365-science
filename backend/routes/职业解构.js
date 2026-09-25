@@ -1,3 +1,11 @@
+/**
+ * 职业解构路由 —— 职业及其阶段/技能/资源/项目的 HTTP 入口
+ * GET /(?category=) 列表、/categories 分类、/:id 详情；POST / 新增；DELETE /:id 删除
+ * GET /export/csv 与 POST /import/csv 供后台做 CSV 导进导出（toCSV/parseCSV 在 services 里）
+ * server.js 双挂载：/api/v1/career（公开读）+ /api/v1/admin/career（管理写）
+ * 坑：/categories、/export/csv 必须注册在 /:id 之前，否则会被当成职业 ID 落到详情分支
+ */
+
 const express = require("express");
 const router = express.Router();
 const careerService = require("../services/职业解构");

@@ -1,3 +1,11 @@
+/**
+ * 概念对比服务 —— A/B 双概念对照表的读写，被 routes/概念对比 调用
+ * 导出 getComparisons / createComparison / updateComparison / deleteComparison
+ * 坑：updateComparison 靠 allowedKeys + fieldMapping 两份表把英文字段映射成中文列名，加列必须两处同时改，否则字段被静默丢掉
+ * createComparison 用的是 INSERT（非 REPLACE），重复 对比ID 会抛 UNIQUE 约束而不是覆盖
+ * 三处写都显式 cache.invalidate("comparisons")，虽然 prepare().run() 已经会 clearAll，属重复但别反向删掉读侧缓存
+ */
+
 const { prepare, markDirty } = require("../db/入口");
 const cache = require("./缓存");
 

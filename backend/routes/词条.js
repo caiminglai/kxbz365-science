@@ -1,3 +1,11 @@
+/**
+ * 词条路由 —— 同物异名主表的查询与增删改入口，挂在 /api/v1/terms
+ * GET / 分页、/search、/recent、/hot、/disciplines、/random、/:id；POST|PUT|DELETE 需 adminAuth
+ * 坑：所有具名路径都排在 /:id 之前，一旦把 /hot 之类挪到后面就会被 /:id 截走
+ * /search 是唯一 async 的 handler，且 server.js 给它单独叠了 searchRateLimiter（600/分钟）
+ * 错误统一按 message 字符串（MISSING_QUERY / NOT_FOUND / MISSING_FIELDS）翻译成状态码
+ */
+
 const express = require("express");
 const router = express.Router();
 const termsService = require("../services/词条");

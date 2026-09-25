@@ -5,7 +5,8 @@
 > **统一响应格式**：`{ success: boolean, data: any, error?: { code, message } }`
 > **数据源**：磁盘 SQLite 三个库 `data/同物异名.db`、`data/学科词库.db`、`data/语义词典.db`（better-sqlite3 驱动）；知识图谱接口同样直接读 SQLite，与 Neo4j 无关（Neo4j 方向**已放弃,不再启用**，graphdb 路由与残留代码已删除）。全文搜索**默认走 SQLite `LIKE`**，Meilisearch **未启用**，无需任何外部服务。
 > **部署**：接口本身与部署方式无关。接入层单轨：**Docker Compose + Caddy**（本机已整站验证；服务器将重装为 Debian 后走同一份 compose，旧栈 Nginx + PM2 已作废，不再作回滚路径）。API 只有 `/api/v1/*` 一套挂载（旧 Nginx rewrite 遗留的 `/twym/api/v1/*` 镜像段已于 2026-09-20 从 `server.js` 删除）；`graphdb` 路由同样未挂载。`searchRateLimiter`（600 请求/分钟）只挂在 `/api/v1/terms/search`，其余接口受通用 1000 请求/分钟限流约束。
-> **更新日期**：2026-09-20（按代码实测校对）
+> **SEO 直出层**：`/t/<学科>/<名称>`、`/sitemap.xml`、`/robots.txt` 不是 `/api/v1` 下的接口，而是 `server.js` 里挂在 API 段之后、**必须早于 `express.static(dist)` 与 SPA 兜底 `app.get("*")`** 的三段服务端渲染路由（详见第 22 节）。兜底会把任何未命中的 GET 伪装成 200 的 `index.html`（实测 1262 字节），所以验证这类页面只能看 `Content-Type` 与响应字节数，状态码在这层面前没有意义。
+> **更新日期**：2026-09-25（新增 SEO 直出层与概念抗体只读/管理接口，按代码与容器实测校对）
 
 ---
 
@@ -32,8 +33,9 @@
 19. [学科词库](#19-学科词库)
 20. [语义词典](#20-语义词典)
 21. [AI 问答](#21-ai-问答)
-22. [前端调用约定](#22-前端调用约定)
-23. [路由文件索引](#23-路由文件索引)
+22. [SEO 着陆页与站点文件](#22-seo-着陆页与站点文件)
+23. [前端调用约定](#23-前端调用约定)
+24. [路由文件索引](#24-路由文件索引)
 
 ---
 
@@ -48,6 +50,8 @@
 | `/api/v1/career` | 职业解构 | ✅ 活跃 | 部分需要 |
 | `/api/v1/industry` | 产业岗位 | ✅ 活跃 | 部分需要 |
 | `/api/v1/antibody` | 概念抗体 | ✅ 活跃 | 部分需要 |
+| `/api/v1/concept-antibodies` | 概念抗体只读列表（前台 `/antibody` 页「实战抗体库」区块用，只回上架条目与白名单字段） | ✅ 活跃 | 公开 |
+| `/api/v1/admin/concept-antibodies` | 概念抗体管理（列表含下架、upsert、删除） | ✅ 活跃 | 需要 |
 | `/api/v1/jobs` | 高薪技术岗（分类、岗位、阶段、技能） | ✅ 活跃 | 部分需要 |
 | `/api/v1/submissions` | 用户提交同物异名 | ✅ 活跃 | 部分需要 |
 | `/api/v1/community` | 社区协作：学科子领域映射 + 词条纠错建议 | ✅ 活跃（原 3 条中文路径参数死路由已于 2026-09-21 删除） | 部分需要 |
@@ -57,6 +61,11 @@
 | `/api/v1/admin` | 管理后台（需 `x-admin-token`） | ✅ 活跃 | 需要 |
 | `/api/v1/admin/reload-db` | 从磁盘重载数据库 | ✅ 活跃 | 需要 |
 | `/api/v1/ai` | AI 问答（多提供商 LLM + RAG） | ✅ 活跃 | 公开（需在请求体自带 `apiKey`，不走 `x-admin-token`） |
+| `/t/<学科>/<名称>` | 词条 SEO 着陆页（服务端直出 HTML + JSON-LD） | ✅ 活跃 | 公开 |
+| `/sitemap.xml` | 词条 sitemap（按请求实时算，与 `/t/` 同一套编码） | ✅ 活跃 | 公开 |
+| `/robots.txt` | 爬虫规则 + `Sitemap:` 声明 | ✅ 活跃 | 公开 |
+
+> 最后三行不属于 `/api/v1`，也不是 JSON 接口：它们返回 HTML/XML/text，**没有** `{ success, data }` 包装，鉴权与限流口径见第 22 节。
 
 ---
 
@@ -535,6 +544,8 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 | `term_id` | string | 否 | 按词条ID过滤 |
 | `category` | string | 否 | 按分类过滤 |
 
+**说明**：免鉴权，默认只返回**上架**条目。判据是 `COALESCE(是否启用, 1) <> 0`——`是否启用` 为 NULL 的老行按上架处理，行为与该列存在之前一致。想连下架条目一起取，只有管理端 CSV 导出（9.3）这条路。
+
 ---
 
 ### 9.2 抗体分类
@@ -548,6 +559,8 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 **接口**：`GET /api/v1/antibody/export/csv`
 
 **鉴权**：需要 `x-admin-token`
+
+**说明**：导出是备份用途，所以下架条目也会一起带走（服务端显式传 `includeDisabled`）。
 
 ---
 
@@ -567,6 +580,8 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 **可能错误**：`MISSING_FIELDS`
 
+**说明**：按 `抗体ID` upsert。写入语句已从 `INSERT OR REPLACE` 改为 `ON CONFLICT(抗体ID) DO UPDATE`——`REPLACE` 是删行重插，会把 `是否启用` 打回列默认值，等于「已下架的条目被编辑一次就偷偷重新上架」。
+
 ---
 
 ### 9.6 删除抗体（管理）
@@ -574,6 +589,34 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 **接口**：`DELETE /api/v1/antibody/:id`
 
 **鉴权**：需要 `x-admin-token`
+
+---
+
+### 9.7 实战抗体库列表（前台只读）
+
+**接口**：`GET /api/v1/concept-antibodies`
+
+**鉴权**：无（免 token）
+
+**参数**：
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `limit` | number | 否 | 取前 N 条；缺省与上限均为 50 |
+
+**说明**：与 9.1 读同一张 `概念抗体` 表，但只回**白名单列**（`id/term_id/title/category/description/content/created_at`，显式列名而非 `SELECT *`），且只回上架条目。给前台 `/antibody` 页的「实战抗体库」区块用；表里没有数据时返回 `data: []`，前端据此整块不渲染。
+
+---
+
+### 9.8 概念抗体管理（admin.html「概念抗体」页签）
+
+**接口**：`GET | POST /api/v1/admin/concept-antibodies`、`DELETE /api/v1/admin/concept-antibodies/:id`
+
+**鉴权**：需要 `x-admin-token`（整个子路由 `router.use(adminAuth)`；该挂载必须早于通用 `/api/v1/admin`）
+
+**说明**：`GET` 列表含下架条目并多带一列 `enabled`，页签据此显示「上架/下架」；`POST` 是 upsert（编辑时表单里的 id 已填好），请求体里的 `enabled` 省略即表示「不改上下架状态」。
+
+**可能错误**：`MISSING_FIELDS`（`id`/`term_id`/`title` 必填）、`INVALID_TERM_ID`（`词条ID` 外键约束失败，回 400 而不是 500）、`NOT_FOUND`（删除时 id 不存在，404）。
 
 ---
 
@@ -1250,7 +1293,95 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ---
 
-## 19. 前端调用约定
+## 19. 学科词库
+
+路由文件：[学科词库.js](file:///e:/website/1.my-first-website/backend/routes/学科词库.js)，数据源是独立库 `data/学科词库.db`（19 张按学科分表 + `总览` 视图）。
+
+> 响应格式例外：本节接口**不带** `{ success, data }` 包装，直接返回裸对象，出错时是 `{ "error": "文案" }`，没有 `error.code`（见 2.1 的例外说明）。固定路径（`lookup`/`search`/`list`/`stats`/`suggestions`/`manage/*`）必须排在 `/:domain` 之前，否则会被通配段吃掉——现网顺序就是这样声明的。
+
+| 接口 | 参数 | 鉴权 | 说明 |
+|------|------|------|------|
+| `GET /api/v1/domains/lookup` | `word` 必填 | 公开 | 跨全部分表查一个词属于哪些学科，按权重倒序，最多回 20 条 |
+| `GET /api/v1/domains/search` | `q` 必填，`domain` 可选，`limit` 默认 50、上限 200 | 公开 | 词语 `LIKE` 模糊搜索；不传 `domain` 则全学科扫 |
+| `GET /api/v1/domains/list` | — | 公开 | 学科列表及词数（走 `总览` 视图，按词数倒序） |
+| `GET /api/v1/domains/stats` | — | 公开 | 总词数、学科数、前十大 |
+| `GET /api/v1/domains/suggestions` | `discipline` 或 `domain` 二选一，`q` 可选，`limit` 默认 20、上限 100 | 公开 | 术语候选：返回该学科词库里**尚未录入主库 `词条`** 的词。两个参数都不带给 400 |
+| `GET /api/v1/domains/manage/search` | `domain` + `q` 必填，`limit` 默认 200、上限 1000 | 公开 | 管理用，额外返回 `id` 以便勾选删除 |
+| `POST /api/v1/domains/manage/delete` | Body: `domain` + `words`（非空数组） | 需要 `x-admin-token` | 批量删除，走 better-sqlite3 事务，回 `requested` 与 `deleted` |
+| `GET /api/v1/domains/:domain` | `offset` 默认 0，`limit` 默认 100、上限 1000 | 公开 | 单学分页取词，按权重倒序；未知学科给 404 并附 `available` 列表 |
+
+---
+
+## 20. 语义词典
+
+路由文件：[语义.js](file:///e:/website/1.my-first-website/backend/routes/语义.js)，数据源是独立库 `data/语义词典.db`。全部公开只读，同样直接返回裸对象（无 `success` 包装）。
+
+| 接口 | 参数 | 说明 |
+|------|------|------|
+| `GET /api/v1/semantics/synonyms` | `word`，`limit` 默认 20 | 近义词 |
+| `GET /api/v1/semantics/antonyms` | `word`，`limit` 默认 20 | 反义词 |
+| `GET /api/v1/semantics/abbrevs` | `word`，`limit` 默认 20 | 简称/缩写 |
+| `GET /api/v1/semantics/hypernyms` | `word`，`direction`，`limit` 默认 20 | 上位词 |
+| `GET /api/v1/semantics/hyponyms` | `word`，`limit` 默认 20 | 下位词 |
+| `GET /api/v1/semantics/all` | `word`，`limit` 默认 10 | 一次拿全各类关系 |
+| `GET /api/v1/semantics/stats` | — | 词典规模统计 |
+
+---
+
+## 21. AI 问答
+
+路由文件：[AI问答.js](file:///e:/website/1.my-first-website/backend/routes/AI问答.js)。多提供商 LLM + RAG，**不走 `x-admin-token`**：调用方在请求体里自带 `apiKey`（可选 `baseUrl`），因此鉴权口径与其他管理接口不同。
+
+| 接口 | 请求体 | 说明 |
+|------|--------|------|
+| `GET /api/v1/ai/providers` | — | 列出支持的提供商（供前端下拉） |
+| `POST /api/v1/ai/chat` | `provider`, `apiKey`, `baseUrl?`, `model`, `question` | 一次性问答，走 RAG 上下文 |
+| `POST /api/v1/ai/stream` | 同上 | 流式（SSE）问答 |
+| `POST /api/v1/ai/generate-term` | `provider`, `apiKey`, `baseUrl?`, `model`, `name`, `discipline` | 生成词条草稿 |
+| `POST /api/v1/ai/generate-comparison` | `provider`, `apiKey`, `baseUrl?`, `model`, `nameA`, `nameB` | 生成概念对比草稿 |
+
+---
+
+## 22. SEO 着陆页与站点文件
+
+站点本体是 React SPA，爬虫抓 `/` 只拿得到空壳 `index.html`。这三条路由提供一条不经 JS 就能被抓到的术语内容路径，**不属于 `/api/v1`**，也没有 `success` 包装。
+
+### 22.0 挂载顺序是硬约束
+
+`server.js` 末尾的 `app.get("*")` 会把任何未命中的 GET 伪装成 200 的 `index.html`（实测 1262 字节）。所以 `/t`、`/sitemap.xml`、`/robots.txt` 必须挂在 `express.static(distPath)` 与 SPA 兜底**之前**；改完这个文件必须重建镜像（`docker compose build twym`），`restart` 无效——代码是烤进镜像的。验证这类页面只能看 `Content-Type` 和字节数，状态码在兜底面前没有意义。
+
+### 22.1 词条着陆页
+
+**接口**：`GET /t/<学科>/<名称>`（`HEAD` 同路返 200、0 字节）
+
+**响应**：`text/html; charset=utf-8`，`Cache-Control: public, max-age=300`，内联 `<script type="application/ld+json">`（`DefinedTerm`，抗体挂在 `subjectOf` 上）。
+
+实现要点（都不是假设，是踩出来的）：
+
+1. **参数怎么解析**：实测 977 行里 136 条名称含 `/`（如「表面张力/界面能」），用 `:名称` 单段参数会直接漏掉 14% 的词条。所以这里不吃 `req.params`，改从 `req.originalUrl` 取 `/t/` 之后的完整原始路径，按**第一个** `/` 切段（第一段一定是学科，实测 0 个学科含 `/`），其余拼回名称；且必须**先切段、再逐段 `decodeURIComponent` 一次**，反过来会让名称里的 `%2F` 提前解开、切错位置。
+2. **为什么是函数式中间件而不是 `router.get("*")`**：Express 做参数匹配时会先把整段路径预解码，遇到 `/t/%E8%A1` 这种被截断的转义序列会在进 handler 之前抛错，被错误处理压成 500 + JSON（当时实测 status=500 bytes=85）。挂成 `app.use("/t", fn)` 后路径不进 path-to-regexp、不被预解码，非法转义才能按设计回真 404。
+3. **canonical 一律由 `着陆页路径()` 重新生成**，不回显请求路径。实测 `/t/化学/表面张力/界面能`、`/t/化学/表面张力%2F界面能`、带尾斜杠三种写法都归一到同一个 2,638 字节页面与同一个 canonical，不会自己跟自己抢收录。
+4. **重复 (学科,名称) 必须有确定性优先级**：实测 10 组重复且组内 本质/翻译/提示 各不相同，不写 `ORDER BY 热度 DESC, 创建时间 DESC, 词条ID ASC` 时 `LIMIT 1` 取哪一行取决于物理行序，一次 VACUUM 就能让同一 URL 换一份正文。sitemap 用同一套聚合优先级才能对上。
+5. **转义**：数据库出来的字符串一律走 `转义HTML()`（实测 名称/本质/提示 三列里已有 7 行含 `<`）；JSON-LD 额外把 `< > &` 与 U+2028/U+2029 转成 `\u00XX`，否则正文里出现 `</script>` 会提前闭合标签。
+6. **站点前缀按请求算**：`站点根()` 读 `X-Forwarded-Proto/Host`（带主机名字符白名单，异常值不回显），刻意**不读** `process.env.FRONTEND_URL`——那个变量在本仓是 Vite 开发端口 3001，线上由 Caddy 反代到本服务的 3000，拿它拼 canonical 会指向不存在的端口。
+
+**错误口径**：路径不合法、非法百分号转义、查无此词条 → **真 404**，`text/plain` 一句中文（实测 21 字节）；数据库异常 → 真 500 纯文本。两者都不会被 SPA 兜底换成 `index.html`。
+
+**内容块**：术语解释（`本质`）、怎么理解（`提示`）、也叫（`跨学科别名`，只认非空字符串、最多 10 条，绝不拿它拼站内链接）、常见误解（该词条**上架**的概念抗体，最多 3 条；抗体取不到就省掉这一区块，不影响整页）。
+
+### 22.2 sitemap
+
+**接口**：`GET /sitemap.xml` → `application/xml`
+
+按请求实时计算，`GROUP BY 学科,名称`，`<loc>` 复用 `着陆页路径()`（两边各写一遍编码规则迟早对不上）。`<lastmod>` 取 `MAX(创建时间)` 截到 `YYYY-MM-DD`——库里存的是本地时间字符串，补一个假时区后缀是错的。条目上限 5000（本机实测 967 条 `<loc>`，全库 147,941 字节）。
+
+### 22.3 robots
+
+**接口**：`GET /robots.txt` → `text/plain`（实测 371 字节，含 `Sitemap: <站点根>/sitemap.xml`）
+
+---
+
+## 23. 前端调用约定
 
 前端采用两层 API 抽象：
 
@@ -1274,7 +1405,7 @@ const categories = await getJobCategories()
 
 ---
 
-## 20. 路由文件索引
+## 24. 路由文件索引
 
 | 文件 | 挂载路径 | 说明 |
 |------|---------|------|
@@ -1284,7 +1415,10 @@ const categories = await getJobCategories()
 | [情景.js](file:///e:/website/1.my-first-website/backend/routes/情景还原.js) | `/api/v1/scenarios` | 情景还原 |
 | [职业.js](file:///e:/website/1.my-first-website/backend/routes/职业解构.js) | `/api/v1/career` | 职业解构 |
 | [产业.js](file:///e:/website/1.my-first-website/backend/routes/产业岗位.js) | `/api/v1/industry` | 产业岗位 |
-| [抗体.js](file:///e:/website/1.my-first-website/backend/routes/概念抗体.js) | `/api/v1/antibody` | 概念抗体 |
+| [抗体.js](file:///e:/website/1.my-first-website/backend/routes/概念抗体.js) | `/api/v1/antibody` | 概念抗体（含 CSV 导入导出） |
+| [概念抗体公开.js](file:///e:/website/1.my-first-website/backend/routes/概念抗体公开.js) | `/api/v1/concept-antibodies` | 前台只读，白名单列 + 只回上架条目 |
+| [概念抗体管理.js](file:///e:/website/1.my-first-website/backend/routes/概念抗体管理.js) | `/api/v1/admin/concept-antibodies` | admin.html 页签；整段 `router.use(adminAuth)`，挂载必须早于通用 `/api/v1/admin` |
+| [概念抗体维护.js](file:///e:/website/1.my-first-website/backend/services/概念抗体维护.js) | —（服务层） | 上面两条路由与着陆页共用的数据访问，只补「启用开关」这一维度，不另起并行表 |
 | [岗位.js](file:///e:/website/1.my-first-website/backend/routes/高薪技术岗.js) | `/api/v1/jobs` | 高薪技术岗 |
 | [统计.js](file:///e:/website/1.my-first-website/backend/routes/统计.js) | `/api/v1/stats` | 统计 + 健康检查 + 用户反馈 |
 | [提交.js](file:///e:/website/1.my-first-website/backend/routes/用户提交.js) | `/api/v1/submissions` | 用户提交 |
@@ -1294,7 +1428,11 @@ const categories = await getJobCategories()
 | [管理.js](file:///e:/website/1.my-first-website/backend/routes/管理.js) | `/api/v1/admin` | 词条/学科/备份/仪表盘/图谱关系 |
 | [AI.js](file:///e:/website/1.my-first-website/backend/routes/AI问答.js) | `/api/v1/ai` | AI 问答 |
 | [语义.js](file:///e:/website/1.my-first-website/backend/routes/语义.js) | `/api/v1/semantics` | 语义词典（同义/反义/简称/抽象） |
+| [着陆页.js](file:///e:/website/1.my-first-website/backend/routes/着陆页.js) | `/t` | 词条 SSR 着陆页；导出中间件本身，另挂 `转义HTML/着陆页路径/站点根/渲染页面` 等纯函数供站点文件.js 与探针复用 |
+| [站点文件.js](file:///e:/website/1.my-first-website/backend/routes/站点文件.js) | `/sitemap.xml`、`/robots.txt` | 爬虫入口；编码函数必须复用 着陆页.js 的 `着陆页路径()` |
+
+> `着陆页.js` 与 `站点文件.js` 在 `server.js` 里的位置不是随便放的：必须早于 `express.static(dist)` 与 SPA 兜底，详见 22.0。
 
 ---
 
-*更新日期：2026-09-24（本节路由索引按 `server.js` 挂载逐条校对）*
+*更新日期：2026-09-25（本节路由索引按 `server.js` 挂载逐条校对；新增 SEO 直出层与概念抗体只读/管理接口）*

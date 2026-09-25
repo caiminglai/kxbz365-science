@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Shield,
@@ -21,6 +21,8 @@ import {
   ArrowLeft,
 } from 'lucide-react'
 import { useNavigate } from 'react-router'
+import { getConceptAntibodies } from '../api/services'
+import type { ConceptAntibodyEntry } from '../api/types'
 
 // ========== 五类忽悠数据 ==========
 const fraudTypes = [
@@ -150,6 +152,23 @@ export default function ConceptAntibody() {
   })
 
   const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length
+
+  // 后台「概念抗体」页签录入的真实案例。空数组或请求失败都保持整页与接入接口前一模一样
+  const [antibodyLibrary, setAntibodyLibrary] = useState<ConceptAntibodyEntry[]>([])
+
+  useEffect(() => {
+    let cancelled = false
+    getConceptAntibodies()
+      .then((list) => {
+        if (!cancelled && Array.isArray(list)) setAntibodyLibrary(list)
+      })
+      .catch(() => {
+        // 这是增强区块，接口异常不能冒泡成页面报错或空态占位
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const tabs = [
     { id: 'steps' as const, label: '三步还原法', icon: FlaskConical },
@@ -655,6 +674,59 @@ export default function ConceptAntibody() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* ===== 实战抗体库（后台录入，只增不换；无数据时整块不渲染） ===== */}
+      {antibodyLibrary.length > 0 && (
+        <div className="max-w-[900px] mx-auto px-4 pb-8">
+          <div className="flex items-center gap-2 mb-1">
+            <Shield className="w-5 h-5 text-warm-accent" />
+            <h2 className="text-xl font-semibold text-warm-dark dark:text-[#F0EEE7] font-display">
+              实战抗体库
+            </h2>
+          </div>
+          <p className="text-sm text-warm-text mb-6">
+            编辑部按三步还原法拆解的真实案例，持续补充。
+          </p>
+          <div className="space-y-4">
+            {antibodyLibrary.map((ab, i) => (
+              <motion.div
+                key={ab.id}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: Math.min(i, 6) * 0.05, duration: 0.4 }}
+                className="bg-white dark:bg-[#252423] dark:border-[#3A3835] rounded-xl border border-warm-border p-5 hover:shadow-card transition-shadow"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-warm-accent/20 to-warm-accent/5 flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-5 h-5 text-warm-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <h3 className="text-base font-semibold text-warm-dark dark:text-[#F0EEE7] font-display">
+                        {ab.title}
+                      </h3>
+                      {ab.category && (
+                        <span className="text-[11px] px-2 py-0.5 rounded-full bg-warm-accent/10 text-warm-accent font-medium">
+                          {ab.category}
+                        </span>
+                      )}
+                    </div>
+                    {ab.description && (
+                      <p className="text-sm text-warm-text mb-2">{ab.description}</p>
+                    )}
+                    {ab.content && (
+                      <p className="text-sm text-warm-dark dark:text-[#E8E6E0] leading-relaxed whitespace-pre-line">
+                        {ab.content}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 底部 */}
       <footer className="text-center py-8 text-sm text-warm-text">

@@ -86,6 +86,7 @@ app.use("/api/v1/scenarios", require("./routes/情景还原")); // 情景还原
 app.use("/api/v1/career", require("./routes/职业解构")); // 职业解构
 app.use("/api/v1/industry", require("./routes/产业岗位")); // 产业岗位
 app.use("/api/v1/antibody", require("./routes/概念抗体")); // 概念抗体
+app.use("/api/v1/concept-antibodies", require("./routes/概念抗体公开")); // 概念抗体（前台只读区块，只回启用条目）
 app.use("/api/v1/stats", require("./routes/统计")); // 统计 + 健康检查 + 用户反馈
 app.use("/api/v1/jobs", require("./routes/高薪技术岗")); // 高薪技术岗（前端动态获取数据）
 app.use("/api/v1/semantics", require("./routes/语义")); // 语义词典（同义/反义/简称/上下位）
@@ -97,6 +98,15 @@ const aiRateLimiter = require("./middleware/安全").createRateLimiter(10, 60 * 
 app.use("/api/v1/ai", aiRateLimiter);
 app.use("/api/v1/ai", require("./routes/AI问答"));
 
+// ===== SEO 服务端渲染层 =====
+// 位置是硬约束：必须早于下面的 express.static(distPath) 与 SPA 兜底 app.get("*")。
+// 兜底会把任何未命中的 GET 伪装成 200 的 index.html（实测：挂载前
+// GET /t/化学/功率 返回 200 + text/html + 1262 字节的 index.html），
+// 那样 /t/ 下所有词条页都会被搜索引擎收成同一个重复页。
+// 前缀是 /t 与两条精确路径，与 /api/v1/... 的现有挂载互不影响。
+app.use("/t", require("./routes/着陆页")); // 词条着陆页：/t/<学科>/<名称>
+app.use("/", require("./routes/站点文件")); // /sitemap.xml + /robots.txt
+
 // ===== 管理路由（活跃，需要 x-admin-token）=====
 // 注意：先注册具体子路由，最后注册通用 admin 路由，避免被截获
 
@@ -106,6 +116,7 @@ app.use("/api/v1/admin", adminRateLimiter);
 app.use("/api/v1/admin/career", require("./routes/职业解构")); // 职业解构管理
 app.use("/api/v1/admin/industry", require("./routes/产业岗位")); // 产业岗位管理
 app.use("/api/v1/admin/antibody", require("./routes/概念抗体")); // 概念抗体管理
+app.use("/api/v1/admin/concept-antibodies", require("./routes/概念抗体管理")); // 概念抗体管理（admin.html 页签，须早于通用 admin 路由）
 app.use("/api/v1/admin/jobs", require("./routes/高薪技术岗")); // 高薪技术岗管理
 app.use("/api/v1/admin/reload-db", require("./routes/重载数据库")); // 重载数据库
 app.use("/api/v1/admin", require("./routes/管理")); // 词条/学科/备份/仪表盘

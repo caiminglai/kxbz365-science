@@ -1,8 +1,19 @@
+/**
+ * 概念抗体服务 —— 词条「抗体」（误区纠正）表的读写 + CSV 导入导出
+ * 导出 getAntibodies / getCategories / createAntibody / batchCreate / deleteAntibody / toCSV / parseCSV
+ * 与 services/概念抗体维护.js 共用 概念抗体 表，共用同一套 是否启用 语义（NULL 视为启用）
+ * getAntibodies 默认滤掉已下架条目，includeDisabled=true 才给全量（只有管理端导出该传）
+ * toCSV 输出带 \uFEFF BOM 且用 \r\n 换行（Excel 需要），parseCSV 反向把中文表头映射回英文字段，两者表头必须对齐
+ * 写侧一律走 UPSERT：整行覆盖会把 是否启用 打回默认值，等于偷偷重新上架
+ */
+
 const { prepare } = require("../db/入口");
 const { markDirty } = require("../db/入口");
 
-function getAntibodies(termId, category) {
-  let sql = `SELECT 抗体ID as id, 词条ID as term_id, 抗体标题 as title, 抗体描述 as description, 抗体类别 as category, 抗体内容 as content, 创建时间 as created_at FROM 概念抗体 WHERE 1=1`;
+function getAntibodies(termId, category, includeDisabled = false) {
+  // COALESCE 让 ALTER 补列前的 NULL 老行算作启用；管理端导出传 includeDisabled=true 拿全量备份
+  const 启用闸门 = includeDisabled ? "1=1" : "COALESCE(是否启用, 1) <> 0";
+  let sql = `SELECT 抗体ID as id, 词条ID as term_id, 抗体标题 as title, 抗体描述 as description, 抗体类别 as category, 抗体内容 as content, 创建时间 as created_at FROM 概念抗体 WHERE ${启用闸门}`;
   const params = [];
   if (termId) {
     sql += ` AND 词条ID = ?`;
@@ -23,12 +34,31 @@ function getCategories() {
   return rows.map((r) => r.category);
 }
 
+/**
+ * 新增/更新共用一条 UPSERT。
+ *
+ * 故意不用 INSERT OR REPLACE：REPLACE 是删行重插，会把 是否启用 打回默认值，
+ * 于是「已下架的条目被旧管理页编辑一次、或被一批 CSV 导入覆盖一次，就偷偷重新上架」。
+ * CSV 表头里没有启用列，所以导入同样保留原行的状态。
+ */
+const UPSERT_SQL = `INSERT INTO 概念抗体 (抗体ID, 词条ID, 抗体标题, 抗体描述, 抗体类别, 抗体内容)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON CONFLICT(抗体ID) DO UPDATE SET
+       词条ID = excluded.词条ID, 抗体标题 = excluded.抗体标题,
+       抗体描述 = excluded.抗体描述, 抗体类别 = excluded.抗体类别,
+       抗体内容 = excluded.抗体内容`;
+
 function createAntibody(data) {
   const { id, term_id, title, description, category, content } = data;
   if (!id || !term_id || !title) throw new Error("MISSING_FIELDS");
-  prepare(
-    `INSERT OR REPLACE INTO 概念抗体 (抗体ID, 词条ID, 抗体标题, 抗体描述, 抗体类别, 抗体内容) VALUES (?, ?, ?, ?, ?, ?)`,
-  ).run(id, term_id, title, description || "", category || "", content || "");
+  prepare(UPSERT_SQL).run(
+    id,
+    term_id,
+    title,
+    description || "",
+    category || "",
+    content || "",
+  );
   markDirty();
   return { id };
 }
@@ -39,9 +69,7 @@ function batchCreate(list) {
   for (const item of list) {
     const { id, term_id, title, description, category, content } = item;
     if (id && term_id && title) {
-      prepare(
-        `INSERT OR REPLACE INTO 概念抗体 (抗体ID, 词条ID, 抗体标题, 抗体描述, 抗体类别, 抗体内容) VALUES (?, ?, ?, ?, ?, ?)`,
-      ).run(
+      prepare(UPSERT_SQL).run(
         id,
         term_id,
         title,

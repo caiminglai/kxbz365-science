@@ -1,3 +1,11 @@
+/**
+ * 知识图谱服务 —— 给前端力导向图喂 nodes 与 links
+ * 导出 getNodes()（读 词条 表，补颜色/半径）与 getLinks()（读 图谱关系 表），供 routes/知识图谱 调用
+ * 两个结果分别缓存在 graph_nodes / graph_links（TTL 5 分钟），改完数据要确认缓存被清掉
+ * DISCIPLINE_COLORS 只硬编码 10 个学科，新学科一律落默认灰 #8B7D6B；要认色就得改这张表
+ * 这个默认灰与表里「跨学科」是同一个色值，新学科节点在图上与跨学科节点无法区分
+ */
+
 const { prepare } = require("../db/入口");
 const cache = require("./缓存");
 

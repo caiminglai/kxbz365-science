@@ -65,6 +65,12 @@ function 确保数据目录存在() {
  * 自动检测并添加缺失的列，保证数据库结构是最新的
  *
  * 注意：这里的表名是中文的（词条、学科等），与数据库实际表名一致
+ *
+ * ⚠️ 下面几段用 `exec("SELECT sql FROM sqlite_master ...")` 判存在再 ALTER 的写法，
+ * 一次都没生效过：better-sqlite3 的 exec() 不返回查询结果，它返回的是数据库对象本身
+ * （用于链式调用），所以 `表信息.length` 是 undefined、`> 0` 恒为 false，ALTER 被静默跳过，
+ * 而且它不抛错、连 catch 里的日志都不会打。实测：`db.exec("SELECT 1") === db` 为 true。
+ * 要新增列，请照本函数末尾「概念抗体.是否启用」那段用 prepare + PRAGMA table_info 的写法。
  */
 function 执行迁移() {
   if (!数据库实例) return;
@@ -117,20 +123,6 @@ function 执行迁移() {
     console.log("[数据库迁移] 概念对比.关系类型 已存在或无需迁移", 错误.message);
   }
 
-  // ---- 学科表迁移 ----
-  try {
-    const 表信息 = 数据库实例.exec(
-      "SELECT sql FROM sqlite_master WHERE type='table' AND name='学科'",
-    );
-    const 表存在 = 表信息.length > 0 && 表信息[0].values.length > 0;
-    if (表存在 && !表信息[0].values[0][0].includes("描述")) {
-      数据库实例.exec("ALTER TABLE 学科 ADD COLUMN 描述 TEXT DEFAULT ''");
-      console.log("[数据库迁移] 学科.描述 列已添加");
-    }
-  } catch (错误) {
-    console.log("[数据库迁移] 学科.描述 已存在或无需迁移", 错误.message);
-  }
-
   // ---- 学科子领域映射表 ----
   try {
     数据库实例.exec(`
@@ -168,6 +160,53 @@ function 执行迁移() {
     console.log("[数据库迁移] 词条纠错建议表 已就绪");
   } catch (错误) {
     console.log("[数据库迁移] 词条纠错建议表 创建失败", 错误.message);
+  }
+
+  // ---- 概念抗体表 ----
+  // schema.sql 只在注释里被提到、实际从未被执行，本函数是启动期唯一的建表入口，
+  // 所以这张表必须在这里补一句 CREATE IF NOT EXISTS，才能保证全新库有表、老库不缺表。
+  // 列定义与 schema.sql 保持逐字一致，避免两条路径建出结构不同的表。
+  try {
+    数据库实例.exec(`
+      CREATE TABLE IF NOT EXISTS 概念抗体 (
+        抗体ID          TEXT PRIMARY KEY,
+        词条ID     TEXT NOT NULL,
+        抗体标题       TEXT NOT NULL,
+        抗体描述 TEXT NOT NULL,
+        抗体类别    TEXT NOT NULL,
+        抗体内容     TEXT NOT NULL,
+        创建时间  DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (词条ID) REFERENCES 词条(词条ID) ON DELETE CASCADE
+      )
+    `);
+    数据库实例.exec(
+      `CREATE INDEX IF NOT EXISTS idx_概念抗体_词条 ON 概念抗体(词条ID)`,
+    );
+    console.log("[数据库迁移] 概念抗体表 已就绪");
+  } catch (错误) {
+    console.log("[数据库迁移] 概念抗体表 创建失败", 错误.message);
+  }
+
+  // ---- 概念抗体.是否启用 ----
+  // 免鉴权的前台接口只吐启用的条目。默认 1 是有意的：antibody.html 与
+  // /api/v1/antibody 的既有写入路径都不带这个字段，补列后老数据必须仍然照常上架，
+  // 否则上线这一步会把现网已有的概念抗体整批变成不可见。
+  //
+  // 这里刻意不抄上面几段 sqlite_master 的写法：那种守卫恒为 false（原因见本函数头部注释），
+  // 要用 prepare + PRAGMA 才拿得到真实列名。
+  try {
+    const 列清单 = 数据库实例
+      .prepare(`PRAGMA table_info(概念抗体)`)
+      .all()
+      .map((列) => 列.name);
+    if (列清单.length > 0 && !列清单.includes("是否启用")) {
+      数据库实例.exec(
+        "ALTER TABLE 概念抗体 ADD COLUMN 是否启用 INTEGER DEFAULT 1",
+      );
+      console.log("[数据库迁移] 概念抗体.是否启用 列已添加");
+    }
+  } catch (错误) {
+    console.log("[数据库迁移] 概念抗体.是否启用 迁移失败", 错误.message);
   }
 }
 

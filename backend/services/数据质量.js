@@ -1,3 +1,10 @@
+/**
+ * 数据质量服务 —— 对 词条 / 图谱关系 做一次全表体检，输出质量报告
+ * 只导出 getQualityReport()：总数、字段空值、重名、缺学科、孤儿关系，被 routes/管理 调用
+ * 五条聚合/全表扫描查询刻意不走 services/缓存，属于后台低频接口，别挂到公开高频路由上
+ * 纯只读；孤儿判定依赖 词条.词条ID 与 图谱关系.源/目标节点ID 两套命名保持一致
+ */
+
 const { prepare } = require("../db/入口");
 
 function getQualityReport() {

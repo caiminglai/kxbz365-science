@@ -1,3 +1,10 @@
+/**
+ * 情景还原服务 —— 把 情景还原 + 情景对话 两张表拼成「场景 + 台词」结构
+ * 只导出 getScenarios()，供 routes/情景还原（/api/v1/scenarios）调用
+ * 结果包在 cache.remember("scenarios") 里（TTL 5 分钟），任何 prepare().run() 写入会整体 clearAll
+ * 台词是在 JS 侧按 scenario_id filter 出来的、不是 SQL JOIN，情景和对话都多起来这里是 O(n*m)
+ */
+
 const { prepare } = require("../db/入口");
 const cache = require("./缓存");
 

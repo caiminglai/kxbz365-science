@@ -184,6 +184,7 @@ tr:hover td{background:#F7F5F0}
       <button class="tab" onclick="switchTab('submissions')" data-tab="submissions">提交审核</button>
       <button class="tab" onclick="switchTab('comparisons')" data-tab="comparisons">对比管理</button>
       <button class="tab" onclick="switchTab('backup')" data-tab="backup">数据备份</button>
+      <button class="tab" onclick="switchTab('concept-antibodies')" data-tab="concept-antibodies">概念抗体</button>
     </div>
 
     <!-- 统计面板 -->
@@ -632,6 +633,13 @@ tr:hover td{background:#F7F5F0}
       <div class="form-group">
         <label>内容</label>
         <textarea id="caContent" placeholder="详细内容" style="min-height:120px"></textarea>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="caEnabled" checked style="width:auto">
+          在前台显示
+        </label>
+        <p style="margin:6px 0 0;font-size:12px;color:#A0A0B0">取消勾选＝下架，条目保留在库里，前台不再出现（导出 CSV 仍会带上，便于备份）</p>
       </div>
     </div>
     <div class="modal-footer">
@@ -1998,7 +2006,7 @@ async function loadConceptAntibodies() {
       <tr>
         <td style="font-family:monospace;font-size:12px;color:#A0A0B0">${ca.id}</td>
         <td>${ca.term_id}</td>
-        <td style="font-weight:500;color:#1A1A2E">${ca.title}</td>
+        <td style="font-weight:500;color:#1A1A2E">${ca.title}${ca.enabled === 0 ? ' <span style="font-size:11px;font-weight:400;color:#8A8A99;border:1px solid #E5E2DA;border-radius:4px;padding:1px 5px">已下架</span>' : ''}</td>
         <td>${ca.category || '-'}</td>
         <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ca.description || '-'}</td>
         <td>
@@ -2021,6 +2029,8 @@ function openConceptAntibodyModal(ca = null) {
   document.getElementById('caCategory').value = ca ? ca.category : '';
   document.getElementById('caDescription').value = ca ? ca.description : '';
   document.getElementById('caContent').value = ca ? ca.content : '';
+  // enabled 为 null 是老行（ALTER 补列前建的），语义上等同上架，与后端 COALESCE 保持一致
+  document.getElementById('caEnabled').checked = !ca || ca.enabled !== 0;
   document.getElementById('conceptAntibodyModal').classList.add('show');
 }
 
@@ -2035,9 +2045,10 @@ async function saveConceptAntibody() {
     title: document.getElementById('caTitle').value.trim(),
     category: document.getElementById('caCategory').value.trim(),
     description: document.getElementById('caDescription').value.trim(),
-    content: document.getElementById('caContent').value.trim()
+    content: document.getElementById('caContent').value.trim(),
+    enabled: document.getElementById('caEnabled').checked ? 1 : 0
   };
-  
+
   if (!body.id || !body.term_id || !body.title) return showToast('ID、词条ID和标题必填', 'error');
   
   try {

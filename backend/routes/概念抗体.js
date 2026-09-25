@@ -64,7 +64,8 @@ router.get("/categories", (req, res) => {
 router.get("/export/csv", adminAuth, (req, res) => {
   try {
     const { term_id, category } = req.query;
-    const list = antibodyService.getAntibodies(term_id, category);
+    // 导出是备份用途，下架条目必须一起带走，所以显式传 includeDisabled
+    const list = antibodyService.getAntibodies(term_id, category, true);
     const csv = antibodyService.toCSV(list);
     const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
     res.setHeader("Content-Type", "text/csv; charset=utf-8");

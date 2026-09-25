@@ -20,6 +20,7 @@ import type {
   ComparisonCreatePayload,
   AIGenerateComparisonRequest,
   Scenario,
+  ConceptAntibodyEntry,
 } from './types'
 
 // ============= AI 问答 =============
@@ -243,6 +244,16 @@ export async function getComparisons(): Promise<Comparison[]> {
  */
 export async function getScenarios(): Promise<Scenario[]> {
   return apiClient.get<Scenario[]>(API_ENDPOINTS.scenarios)
+}
+
+// ============= 概念抗体（前台只读区块） =============
+
+/**
+ * 获取后台已启用的概念抗体条目
+ * 接口免鉴权且只回白名单字段，返回空数组时页面不渲染该区块
+ */
+export async function getConceptAntibodies(): Promise<ConceptAntibodyEntry[]> {
+  return apiClient.get<ConceptAntibodyEntry[]>(API_ENDPOINTS.conceptAntibodies)
 }
 
 // ============= 用户提交 =============

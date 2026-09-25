@@ -323,3 +323,14 @@ export interface CrossDisciplineEntry {
   names: { discipline: string; name: string }[]
   summary: string
 }
+
+/** 概念抗体（后台录入、前台只读展示；字段名与 /api/v1/concept-antibodies 一致） */
+export interface ConceptAntibodyEntry {
+  id: string
+  term_id?: string | null
+  title: string
+  category?: string | null
+  description?: string | null
+  content?: string | null
+  created_at?: string | null
+}

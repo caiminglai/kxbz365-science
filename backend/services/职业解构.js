@@ -1,3 +1,11 @@
+/**
+ * 职业解构服务 —— 职业主表加 阶段/技能/资源/项目 四张子表的 SQL 层
+ * 导出 getCareers / getCategories / getCareerDetail / createCareer / batchCreate / deleteCareer / toCSV / parseCSV
+ * getCareerDetail 打 5 次查询拼对象；deleteCareer 手工逐表 DELETE 五张表，没走外键级联
+ * createCareer / batchCreate 都是 INSERT OR REPLACE：同 职业ID 整行覆盖，未传的字段会被清空
+ * toCSV 带 \uFEFF BOM + \r\n；parseCSV 靠中文表头映射回英文字段，改表头要同步 mapping
+ */
+
 const { prepare } = require("../db/入口");
 const { markDirty } = require("../db/入口");
 
