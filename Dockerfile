@@ -5,7 +5,7 @@ WORKDIR /app-frontend
 COPY app/package*.json ./
 RUN npm install --registry=https://registry.npmmirror.com
 COPY app/ ./
-RUN npx vite build
+RUN npm run build
 
 # 阶段2：编译后端原生依赖
 # better-sqlite3 v13 在本环境无匹配预编译包，需 python3/make/g++ 从源码编译。
