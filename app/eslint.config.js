@@ -29,8 +29,12 @@ export default defineConfig([
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
-      // eslint-plugin-react-hooks 7.x 新加的编译器规则，存量代码一次改不完，
-      // 先降为 warn 让门禁能跑；这三条清零后可以删掉。
+      // eslint-plugin-react-hooks 7.x 新加的三条编译器规则，先降为 warn 让门禁能跑。
+      // 实测计数（react-hooks 7.1.1，0 error）：set-state-in-effect 5
+      // （TodayRecommend/use-mobile/useDisciplines/useTerms/SearchSection），
+      // 另两条 0。这 5 条都是"挂载时在 effect 里 setState 起数据"，改法要逐组件
+      // 判（有的该转 useSyncExternalStore，有的该挪进事件处理器），清零后再删这三行。
+      // 版本下限必须是 7.1.1：7.0.1 里这三条规则还没实现，用它量恒为 0 命中，是假绿。
       'react-hooks/preserve-manual-memoization': 'warn',
       'react-hooks/set-state-in-effect': 'warn',
       'react-hooks/immutability': 'warn',
