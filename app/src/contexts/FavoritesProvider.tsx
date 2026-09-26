@@ -64,10 +64,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('storage', handler)
   }, [])
 
-  const isFavorite = useCallback(
-    (id: string) => favorites.some((f) => f.id === id),
-    [favorites],
-  )
+  const isFavorite = useCallback((id: string) => favorites.some((f) => f.id === id), [favorites])
 
   const addFavorite = useCallback((item: FavoriteItem) => {
     setFavorites((prev) => {

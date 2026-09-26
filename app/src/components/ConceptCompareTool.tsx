@@ -340,8 +340,6 @@ export default function ConceptCompareTool() {
     return d?.name || id
   }
 
-
-
   // 判断字符串是否相似（包含关系）
   const matchName = (input: string, target: string) => {
     if (!input?.trim() || !target?.trim()) return false
@@ -355,7 +353,9 @@ export default function ConceptCompareTool() {
     return comparisons.find((c) => {
       const nameA = c.concept_a_name || ''
       const nameB = c.concept_b_name || ''
-      return (matchName(a, nameA) && matchName(b, nameB)) || (matchName(a, nameB) && matchName(b, nameA))
+      return (
+        (matchName(a, nameA) && matchName(b, nameB)) || (matchName(a, nameB) && matchName(b, nameA))
+      )
     })
   }
 
@@ -457,13 +457,18 @@ export default function ConceptCompareTool() {
           {/* 顶部栏 */}
           <div className="px-5 py-3 border-b border-warm-border bg-warm-bg/30 flex items-center relative">
             <span className="font-semibold text-warm-dark dark:text-warm-text">{cmp.title}</span>
-            <span className="font-semibold text-blue-600 absolute left-1/2 -translate-x-1/2">关系属性：{cmp.relationship_type}</span>
+            <span className="font-semibold text-blue-600 absolute left-1/2 -translate-x-1/2">
+              关系属性：{cmp.relationship_type}
+            </span>
           </div>
 
           {/* 两个概念对比 */}
           <div className="grid md:grid-cols-2">
             {items.map((c, idx) => (
-              <div key={c.prefix} className={`p-5 ${idx === 0 ? 'border-r border-warm-border' : ''}`}>
+              <div
+                key={c.prefix}
+                className={`p-5 ${idx === 0 ? 'border-r border-warm-border' : ''}`}
+              >
                 <div className="flex items-center gap-2 mb-4">
                   <span
                     className="w-2 h-2 rounded-full flex-shrink-0"
@@ -490,7 +495,9 @@ export default function ConceptCompareTool() {
                   {c.analogy && (
                     <div>
                       <div className="text-xs text-warm-text mb-1">类比</div>
-                      <div className="text-sm text-warm-text italic" style={{ color: '#B8783A' }}>"{c.analogy}"</div>
+                      <div className="text-sm text-warm-text italic" style={{ color: '#B8783A' }}>
+                        "{c.analogy}"
+                      </div>
                     </div>
                   )}
 
@@ -508,7 +515,9 @@ export default function ConceptCompareTool() {
           {/* 底部一句话总结 */}
           <div className="px-5 py-3 bg-warm-bg/20 border-t border-warm-border">
             <span className="text-xs text-warm-text">一句话总结：</span>
-            <span className="text-lg font-semibold text-amber-600 dark:text-amber-400">{cmp.summary}</span>
+            <span className="text-lg font-semibold text-amber-600 dark:text-amber-400">
+              {cmp.summary}
+            </span>
           </div>
         </div>
       </motion.div>
@@ -588,7 +597,9 @@ export default function ConceptCompareTool() {
                 )}
                 <div>
                   <div className="text-[11px] text-warm-text mb-1">本质解释</div>
-                  <div className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">{c.essence}</div>
+                  <div className="text-sm text-emerald-700 dark:text-emerald-400 font-medium">
+                    {c.essence}
+                  </div>
                 </div>
                 {c.tip && (
                   <div>
@@ -596,22 +607,25 @@ export default function ConceptCompareTool() {
                     <div className="text-sm text-disc-law">{c.tip}</div>
                   </div>
                 )}
-                {c.aliases && Array.isArray(c.aliases) && c.aliases.length > 0 && (() => {
-                  const aliasList: TermAlias[] = c.aliases
-                  return (
-                    <div>
-                      <div className="text-[11px] text-warm-text mb-1">跨学科别名</div>
-                      <div className="text-sm text-warm-text">
-                        {aliasList.map((al, idx) => (
-                          <span key={`${al.discipline}-${al.name}`}>
-                            {getDisciplineName(al.discipline)}·{al.name}
-                            {idx < aliasList.length - 1 ? '；' : ''}
-                          </span>
-                        ))}
+                {c.aliases &&
+                  Array.isArray(c.aliases) &&
+                  c.aliases.length > 0 &&
+                  (() => {
+                    const aliasList: TermAlias[] = c.aliases
+                    return (
+                      <div>
+                        <div className="text-[11px] text-warm-text mb-1">跨学科别名</div>
+                        <div className="text-sm text-warm-text">
+                          {aliasList.map((al, idx) => (
+                            <span key={`${al.discipline}-${al.name}`}>
+                              {getDisciplineName(al.discipline)}·{al.name}
+                              {idx < aliasList.length - 1 ? '；' : ''}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )
-                })()}
+                    )
+                  })()}
               </div>
             </div>
           ))}
@@ -662,18 +676,15 @@ export default function ConceptCompareTool() {
       ) : searching ? (
         <div className="text-center py-16 text-warm-text">正在搜索对比...</div>
       ) : autoMode && comparisons.length > 0 ? (
-        <div
-          onMouseEnter={() => setAutoPaused(true)}
-          onMouseLeave={() => setAutoPaused(false)}
-        >
-          <AnimatePresence mode="wait">
-            {renderComparison(comparisons[autoIndex])}
-          </AnimatePresence>
+        <div onMouseEnter={() => setAutoPaused(true)} onMouseLeave={() => setAutoPaused(false)}>
+          <AnimatePresence mode="wait">{renderComparison(comparisons[autoIndex])}</AnimatePresence>
           {/* 翻页控制 + 小圆点指示器 */}
           <div className="mt-6 flex flex-col sm:flex-row items-center justify-end gap-3">
             <div className="flex items-center gap-1.5">
               <button
-                onClick={() => setAutoIndex((i) => (i - 1 + comparisons.length) % comparisons.length)}
+                onClick={() =>
+                  setAutoIndex((i) => (i - 1 + comparisons.length) % comparisons.length)
+                }
                 className="w-6 h-6 rounded-full border border-warm-border bg-white dark:bg-warm-card text-warm-text hover:bg-warm-bg hover:border-warm-accent/40 text-xs transition-colors"
                 aria-label="上一条"
               >

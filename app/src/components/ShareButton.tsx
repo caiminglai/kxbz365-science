@@ -23,8 +23,7 @@ interface ShareButtonProps {
  */
 export default function ShareButton({ url }: ShareButtonProps) {
   // 分享地址:优先用传入的,否则取当前网站根地址(去掉路径和查询)
-  const shareUrl =
-    url ?? (typeof window !== 'undefined' ? window.location.origin : '')
+  const shareUrl = url ?? (typeof window !== 'undefined' ? window.location.origin : '')
 
   const [qrDataUrl, setQrDataUrl] = useState<string>('')
   const [copied, setCopied] = useState(false)
@@ -78,11 +77,7 @@ export default function ShareButton({ url }: ShareButtonProps) {
           {/* 二维码图片:白底居中,微信扫一扫可直接识别 */}
           <div className="w-64 h-64 bg-white rounded-xl p-3 flex items-center justify-center">
             {qrDataUrl ? (
-              <img
-                src={qrDataUrl}
-                alt="网站二维码"
-                className="w-full h-full object-contain"
-              />
+              <img src={qrDataUrl} alt="网站二维码" className="w-full h-full object-contain" />
             ) : (
               <div className="text-warm-text text-sm">生成中...</div>
             )}

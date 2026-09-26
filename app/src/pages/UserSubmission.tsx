@@ -170,9 +170,7 @@ export default function UserSubmission() {
       setErrors((prev) => ({
         ...prev,
         term_name: !termForm.term_name.trim() ? '请填写术语名称' : prev.term_name,
-        term_discipline: !termForm.term_discipline.trim()
-          ? '请选择学科'
-          : prev.term_discipline,
+        term_discipline: !termForm.term_discipline.trim() ? '请选择学科' : prev.term_discipline,
       }))
       return
     }
@@ -245,7 +243,7 @@ export default function UserSubmission() {
             <p className="text-warm-text ml-4 max-w-[600px]">
               你可以提交一组“同物异名”，也可以提交一个专业术语的大白话解释。我们每天人工审核。
             </p>
-            
+
             {/* 模式说明卡片 */}
             <div className="mt-6 p-4 bg-warm-bg dark:bg-warm-card-dark rounded-xl border border-warm-border">
               <div className="grid sm:grid-cols-2 gap-4">
@@ -254,8 +252,12 @@ export default function UserSubmission() {
                     <span className="text-disc-econ font-bold">1</span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-warm-dark dark:text-warm-text mb-1">同物异名</h3>
-                    <p className="text-sm text-warm-text">提交两个本质相同但叫法不同的术语，比如“函数”和“映射”</p>
+                    <h3 className="font-semibold text-warm-dark dark:text-warm-text mb-1">
+                      同物异名
+                    </h3>
+                    <p className="text-sm text-warm-text">
+                      提交两个本质相同但叫法不同的术语，比如“函数”和“映射”
+                    </p>
                   </div>
                 </div>
                 <div className="flex gap-3">
@@ -263,8 +265,12 @@ export default function UserSubmission() {
                     <span className="text-disc-cs font-bold">2</span>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-warm-dark dark:text-warm-text mb-1">新术语 / AI 辅助</h3>
-                    <p className="text-sm text-warm-text">提交一个新术语的大白话解释，AI 可以帮你自动生成</p>
+                    <h3 className="font-semibold text-warm-dark dark:text-warm-text mb-1">
+                      新术语 / AI 辅助
+                    </h3>
+                    <p className="text-sm text-warm-text">
+                      提交一个新术语的大白话解释，AI 可以帮你自动生成
+                    </p>
                   </div>
                 </div>
               </div>
@@ -490,7 +496,9 @@ export default function UserSubmission() {
                             />
                           </div>
                           <div>
-                            <label className="block text-xs text-warm-text mb-1">模型（可选）</label>
+                            <label className="block text-xs text-warm-text mb-1">
+                              模型（可选）
+                            </label>
                             <input
                               type="text"
                               value={aiConfig.model}
@@ -527,8 +535,7 @@ export default function UserSubmission() {
                           </>
                         ) : (
                           <>
-                            <Sparkles className="w-4 h-4" />
-                            让 AI 生成大白话翻译、本质与跨学科别名
+                            <Sparkles className="w-4 h-4" />让 AI 生成大白话翻译、本质与跨学科别名
                           </>
                         )}
                       </button>
@@ -550,9 +557,7 @@ export default function UserSubmission() {
                         }`}
                       />
                       {errors.term_translation && (
-                        <div className="mt-1.5 text-xs text-red-500">
-                          {errors.term_translation}
-                        </div>
+                        <div className="mt-1.5 text-xs text-red-500">{errors.term_translation}</div>
                       )}
                     </div>
 
@@ -584,8 +589,7 @@ export default function UserSubmission() {
 
                     <div className="mb-4">
                       <label className="block text-sm text-warm-text mb-2">
-                        跨学科别名{' '}
-                        <span className="text-xs text-warm-text/70">（可选）</span>
+                        跨学科别名 <span className="text-xs text-warm-text/70">（可选）</span>
                       </label>
                       <textarea
                         value={termForm.term_aliases}

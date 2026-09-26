@@ -180,12 +180,12 @@ export default function ShareCard({ term }: ShareCardProps) {
     // 页脚：品牌名 + 域名 两行，居中对齐
     const footerY = CANVAS_HEIGHT - 95
     ctx.textAlign = 'center'
-    
+
     // 第一行：品牌名（较大字号）
     ctx.font = '700 24px "LXGW WenKai", "PingFang SC", "Microsoft YaHei", sans-serif'
     ctx.fillStyle = accentColor
     ctx.fillText('科学不装', CANVAS_WIDTH / 2, footerY)
-    
+
     // 第二行：域名（比上面小一点点）
     ctx.font = '600 20px "PingFang SC", "Microsoft YaHei", sans-serif'
     ctx.fillStyle = subTextColor

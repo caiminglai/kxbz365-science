@@ -42,10 +42,7 @@ export async function aiChat(request: AIChatRequest): Promise<AIChatResponse> {
  *     console.log(chunk.content); // 逐字输出
  *   }
  */
-export async function* aiChatStream(
-  request: AIChatRequest,
-  signal?: AbortSignal,
-) {
+export async function* aiChatStream(request: AIChatRequest, signal?: AbortSignal) {
   // 开发环境使用相对路径通过代理，生产环境自动检测部署路径前缀
   const baseUrl = API_BASE_URL
 
@@ -303,9 +300,7 @@ export async function rejectSubmission(id: number): Promise<void> {
   return apiClient.post<void>(API_ENDPOINTS.rejectSubmission(id))
 }
 
-export async function createComparison(
-  payload: ComparisonCreatePayload,
-): Promise<Comparison> {
+export async function createComparison(payload: ComparisonCreatePayload): Promise<Comparison> {
   return apiClient.post<Comparison>(API_ENDPOINTS.comparisons, payload)
 }
 
@@ -331,8 +326,12 @@ export async function aiGenerateComparison(
 /**
  * 获取岗位分类列表
  */
-export async function getJobCategories(): Promise<Array<{ id: number; name: string; icon: string }>> {
-  return apiClient.get<Array<{ id: number; name: string; icon: string }>>(API_ENDPOINTS.jobCategories)
+export async function getJobCategories(): Promise<
+  Array<{ id: number; name: string; icon: string }>
+> {
+  return apiClient.get<Array<{ id: number; name: string; icon: string }>>(
+    API_ENDPOINTS.jobCategories,
+  )
 }
 
 /**
@@ -342,7 +341,9 @@ export async function getDetailedJobs(categoryId?: number): Promise<unknown[]> {
   const params = new URLSearchParams()
   if (categoryId) params.set('categoryId', String(categoryId))
   const query = params.toString()
-  return apiClient.get<unknown[]>(query ? `${API_ENDPOINTS.jobs}/detailed?${query}` : `${API_ENDPOINTS.jobs}/detailed`)
+  return apiClient.get<unknown[]>(
+    query ? `${API_ENDPOINTS.jobs}/detailed?${query}` : `${API_ENDPOINTS.jobs}/detailed`,
+  )
 }
 
 // ============= 反馈 =============

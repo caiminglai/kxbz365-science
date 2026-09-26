@@ -25,14 +25,13 @@ export default function DisciplinePage() {
         // 加载学科列表
         const disciplines = await getDisciplines()
         const disc = disciplines.find((d) => d.id === id)
-        if (!cancelled) setDiscipline(disc ? { ...disc, description: disc.description || '' } : null)
+        if (!cancelled)
+          setDiscipline(disc ? { ...disc, description: disc.description || '' } : null)
 
         // 加载该学科下的词条（使用统一 API 服务）
         const termsData = await getTerms(1, 500, disc?.name || id)
         if (!cancelled) {
-          const list: APITerm[] = Array.isArray(termsData)
-            ? termsData
-            : termsData?.terms || []
+          const list: APITerm[] = Array.isArray(termsData) ? termsData : termsData?.terms || []
           setTerms(list)
         }
       } catch (e: unknown) {
@@ -42,7 +41,9 @@ export default function DisciplinePage() {
       }
     }
     load()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [id])
 
   useEffect(() => {
@@ -86,7 +87,10 @@ export default function DisciplinePage() {
             {/* 学科标题 */}
             <div className="mb-8">
               <h1 className="text-2xl sm:text-3xl font-bold text-warm-dark font-display flex items-center gap-3">
-                <span className="w-1.5 h-10 rounded-full" style={{ backgroundColor: discipline.color || '#6B7D5E' }} />
+                <span
+                  className="w-1.5 h-10 rounded-full"
+                  style={{ backgroundColor: discipline.color || '#6B7D5E' }}
+                />
                 {discipline.name}
               </h1>
               {discipline.description && (
@@ -99,7 +103,10 @@ export default function DisciplinePage() {
             <section className="mb-10">
               <div className="flex items-baseline justify-between mb-4">
                 <h2 className="text-xl font-bold text-warm-dark font-display flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: discipline.color || '#6B7D5E' }} />
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ backgroundColor: discipline.color || '#6B7D5E' }}
+                  />
                   「{discipline.name}」的概念关系图谱
                 </h2>
                 <span className="text-xs text-warm-text/70">只显示该学科内部的词条与关系</span>
@@ -153,27 +160,58 @@ export default function DisciplinePage() {
                         </span>
                       </div>
                       <p className="mt-2 text-warm-text text-sm leading-relaxed">
-                        机器学习与 AI 领域最全的「论文 + 官方代码实现 + 数据集 + 基准榜单」汇总平台。
-                        从 Transformer、扩散模型到强化学习，每条 SOTA（当前最优）结果都有可复现的代码和完整评测数据，
+                        机器学习与 AI 领域最全的「论文 + 官方代码实现 + 数据集 +
+                        基准榜单」汇总平台。 从 Transformer、扩散模型到强化学习，每条
+                        SOTA（当前最优）结果都有可复现的代码和完整评测数据，
                         是计算机方向入门前沿研究、复现实验、对比模型效果的首选工具站。
                       </p>
                       <div className="mt-3 flex items-center gap-4 text-xs text-warm-text/70">
                         <span className="inline-flex items-center gap-1">
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
                           </svg>
                           海量论文 + 代码对应
                         </span>
                         <span className="inline-flex items-center gap-1">
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                            />
                           </svg>
                           SOTA 基准排行榜
                         </span>
                         <span className="inline-flex items-center gap-1 text-disc-cs/90 font-medium group-hover:translate-x-0.5 transition-transform">
                           前往访问
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2.2}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M14 5l7 7m0 0l-7 7m7-7H3"
+                            />
                           </svg>
                         </span>
                       </div>

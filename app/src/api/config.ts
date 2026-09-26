@@ -6,9 +6,10 @@
 
 // 开发环境：使用 .env 中的 VITE_API_BASE_URL
 // 生产环境：同源部署，空前缀
-const envBase = typeof import.meta !== 'undefined'
-  ? (import.meta.env.VITE_API_BASE_URL as string | undefined)
-  : undefined
+const envBase =
+  typeof import.meta !== 'undefined'
+    ? (import.meta.env.VITE_API_BASE_URL as string | undefined)
+    : undefined
 
 export const API_BASE_URL = envBase || ''
 

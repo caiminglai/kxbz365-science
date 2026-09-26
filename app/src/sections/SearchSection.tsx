@@ -272,10 +272,7 @@ export default function SearchSection({
   const showHistoryOrHot = !trimmedQuery && showSuggestions
 
   return (
-    <section
-      id="search-section"
-      className="bg-warm-bg dark:bg-warm-bg py-8 sm:py-10 px-4 lg:px-6"
-    >
+    <section id="search-section" className="bg-warm-bg dark:bg-warm-bg py-8 sm:py-10 px-4 lg:px-6">
       <motion.div
         className="max-w-[700px] mx-auto relative"
         initial={{ opacity: 0, y: 20 }}
@@ -350,7 +347,10 @@ export default function SearchSection({
                           {renderHighlighted(getHighlight(suggestion, 'name'), suggestion.name)}
                         </div>
                         <div className="text-sm text-warm-text truncate">
-                          {renderHighlighted(getHighlight(suggestion, 'translation'), suggestion.translation)}
+                          {renderHighlighted(
+                            getHighlight(suggestion, 'translation'),
+                            suggestion.translation,
+                          )}
                         </div>
                       </div>
                     </div>

@@ -43,9 +43,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             <h1 className="text-2xl font-bold text-warm-dark dark:text-warm-text mb-2">
               页面出错了
             </h1>
-            <p className="text-warm-text mb-2">
-              渲染过程中发生了意外错误。
-            </p>
+            <p className="text-warm-text mb-2">渲染过程中发生了意外错误。</p>
             {this.state.error && (
               <pre className="text-xs text-left bg-warm-card dark:bg-warm-card border border-warm-border rounded-lg p-3 mb-4 overflow-auto max-h-32 text-warm-text">
                 {this.state.error.message}

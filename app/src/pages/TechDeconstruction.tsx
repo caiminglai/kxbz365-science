@@ -887,7 +887,10 @@ export default function TechDeconstruction() {
   return (
     <div className="min-h-screen bg-[#F7F5F0] dark:bg-[#1C1B1A]">
       <PageNavBar />
-      <SideNav items={TECH_NAV_ITEMS as SideNavItem[]} extraItems={[{ id: 'career-guide', label: '高薪岗指南', icon: '指南' }]} />
+      <SideNav
+        items={TECH_NAV_ITEMS as SideNavItem[]}
+        extraItems={[{ id: 'career-guide', label: '高薪岗指南', icon: '指南' }]}
+      />
       <HeroSection />
       <ProfitPyramidSection />
       <ComponentsSection />

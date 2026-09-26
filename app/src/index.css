@@ -142,34 +142,74 @@
   }
 
   /* ── 半透明白背景 → 半透明暖深 ── */
-  .bg-white\/95 { background-color: rgba(37, 36, 35, 0.95) !important; }
-  .bg-white\/90 { background-color: rgba(37, 36, 35, 0.9) !important; }
-  .bg-white\/80 { background-color: rgba(37, 36, 35, 0.85) !important; }
-  .bg-white\/70 { background-color: rgba(37, 36, 35, 0.75) !important; }
-  .bg-white\/50 { background-color: rgba(37, 36, 35, 0.55) !important; }
-  .bg-white\/20 { background-color: rgba(255, 255, 255, 0.18) !important; }
-  .bg-white\/10 { background-color: rgba(255, 255, 255, 0.1) !important; }
-  .bg-white\/0  { background-color: transparent !important; }
+  .bg-white\/95 {
+    background-color: rgba(37, 36, 35, 0.95) !important;
+  }
+  .bg-white\/90 {
+    background-color: rgba(37, 36, 35, 0.9) !important;
+  }
+  .bg-white\/80 {
+    background-color: rgba(37, 36, 35, 0.85) !important;
+  }
+  .bg-white\/70 {
+    background-color: rgba(37, 36, 35, 0.75) !important;
+  }
+  .bg-white\/50 {
+    background-color: rgba(37, 36, 35, 0.55) !important;
+  }
+  .bg-white\/20 {
+    background-color: rgba(255, 255, 255, 0.18) !important;
+  }
+  .bg-white\/10 {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  .bg-white\/0 {
+    background-color: transparent !important;
+  }
 
   /* ── 灰色/黑色文字 → 暖米白（按亮度递减） ── */
   .text-black,
-  .text-gray-900 { color: #f0eee7 !important; }
-  .text-gray-800 { color: #e8e6e0 !important; }
-  .text-gray-700 { color: #d4d1c8 !important; }
-  .text-gray-600 { color: #b5b2a8 !important; }
-  .text-gray-500 { color: #8a8780 !important; }
-  .text-gray-400 { color: #6e6c66 !important; }
+  .text-gray-900 {
+    color: #f0eee7 !important;
+  }
+  .text-gray-800 {
+    color: #e8e6e0 !important;
+  }
+  .text-gray-700 {
+    color: #d4d1c8 !important;
+  }
+  .text-gray-600 {
+    color: #b5b2a8 !important;
+  }
+  .text-gray-500 {
+    color: #8a8780 !important;
+  }
+  .text-gray-400 {
+    color: #6e6c66 !important;
+  }
 
   /* ── 灰色边框 → 暖深边框 ── */
-  .border-gray-100 { border-color: rgba(58, 56, 53, 0.6) !important; }
-  .border-gray-200 { border-color: rgba(58, 56, 53, 0.7) !important; }
-  .border-gray-300 { border-color: rgba(58, 56, 53, 0.8) !important; }
+  .border-gray-100 {
+    border-color: rgba(58, 56, 53, 0.6) !important;
+  }
+  .border-gray-200 {
+    border-color: rgba(58, 56, 53, 0.7) !important;
+  }
+  .border-gray-300 {
+    border-color: rgba(58, 56, 53, 0.8) !important;
+  }
 
   /* ── 主题色（已通过 CSS 变量自适应，仅需覆盖带透明度的变体） ── */
-  .bg-warm-bg\/50 { background-color: rgba(37, 36, 35, 0.6) !important; }
+  .bg-warm-bg\/50 {
+    background-color: rgba(37, 36, 35, 0.6) !important;
+  }
 
-  .hover\:text-warm-dark:hover { color: #f0eee7 !important; }
-  .placeholder\:text-warm-text::placeholder { color: rgba(232, 230, 224, 0.45) !important; }
+  .hover\:text-warm-dark:hover {
+    color: #f0eee7 !important;
+  }
+  .placeholder\:text-warm-text::placeholder {
+    color: rgba(232, 230, 224, 0.45) !important;
+  }
 
   /* ── 输入控件 ── */
   input,
@@ -184,40 +224,66 @@
   .text-amber-800,
   .text-amber-700,
   .text-amber-600,
-  .text-amber-500  { color: #fcd34d !important; }
-  .text-amber-400  { color: #fbbf24 !important; }
+  .text-amber-500 {
+    color: #fcd34d !important;
+  }
+  .text-amber-400 {
+    color: #fbbf24 !important;
+  }
 
   .text-red-900,
   .text-red-800,
   .text-red-700,
   .text-red-600,
   .text-red-500,
-  .text-red-400    { color: #fca5a5 !important; }
+  .text-red-400 {
+    color: #fca5a5 !important;
+  }
 
   .text-green-900,
   .text-green-800,
   .text-green-700,
   .text-green-600,
   .text-green-500,
-  .text-green-400  { color: #86efac !important; }
+  .text-green-400 {
+    color: #86efac !important;
+  }
 
   /* ── 彩色背景块 → 半透明 ── */
   .bg-amber-200,
-  .bg-amber-50     { background-color: rgba(251, 191, 36, 0.15) !important; }
+  .bg-amber-50 {
+    background-color: rgba(251, 191, 36, 0.15) !important;
+  }
   .bg-red-500\/20,
   .bg-red-500\/10,
   .bg-red-100,
-  .bg-red-50       { background-color: rgba(248, 113, 113, 0.15) !important; }
+  .bg-red-50 {
+    background-color: rgba(248, 113, 113, 0.15) !important;
+  }
   .bg-green-200,
-  .bg-green-50     { background-color: rgba(134, 239, 172, 0.15) !important; }
-  .border-red-500\/20 { border-color: rgba(248, 113, 113, 0.4) !important; }
+  .bg-green-50 {
+    background-color: rgba(134, 239, 172, 0.15) !important;
+  }
+  .border-red-500\/20 {
+    border-color: rgba(248, 113, 113, 0.4) !important;
+  }
 
   /* ── 阴影 → 深色 ── */
-  .shadow-sm  { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important; }
-  .shadow-card { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important; }
-  .shadow-lg  { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important; }
-  .shadow-xl  { box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important; }
-  .shadow-2xl { box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6) !important; }
+  .shadow-sm {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  }
+  .shadow-card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  }
+  .shadow-lg {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+  }
+  .shadow-xl {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5) !important;
+  }
+  .shadow-2xl {
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6) !important;
+  }
 }
 
 /* ============ 移动端优化 ============ */

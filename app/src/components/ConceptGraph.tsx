@@ -51,7 +51,11 @@ const getDisciplineColor = (id: string): string => {
 // #RRGGBB / #RGB -> HSL
 function hexToHsl(hex: string): [number, number, number] {
   let h = hex.replace('#', '')
-  if (h.length === 3) h = h.split('').map((c) => c + c).join('')
+  if (h.length === 3)
+    h = h
+      .split('')
+      .map((c) => c + c)
+      .join('')
   const r = parseInt(h.substring(0, 2), 16) / 255
   const g = parseInt(h.substring(2, 4), 16) / 255
   const b = parseInt(h.substring(4, 6), 16) / 255
@@ -85,7 +89,9 @@ function hslToHex(h: number, s: number, l: number): string {
   const C = (1 - Math.abs(2 * L - 1)) * S
   const hh = h / 60
   const X = C * (1 - Math.abs((hh % 2) - 1))
-  let r1 = 0, g1 = 0, b1 = 0
+  let r1 = 0,
+    g1 = 0,
+    b1 = 0
   if (hh >= 0 && hh < 1) [r1, g1, b1] = [C, X, 0]
   else if (hh < 2) [r1, g1, b1] = [X, C, 0]
   else if (hh < 3) [r1, g1, b1] = [0, C, X]
@@ -126,7 +132,7 @@ function makeNodeVariation(
   // 2) brightness: 中心节点稍亮，边缘节点稍暗（-10 ~ +8）
   const lShift = maxDegree > 0 ? (degree / maxDegree) * 18 - 10 : (hashStr(nodeId) % 17) - 8
   // 3) hue 微抖动（±12°），让即使连接度相同的节点也略有差异
-  const hShift = ((hashStr(nodeId) % 2400) / 100) - 12
+  const hShift = (hashStr(nodeId) % 2400) / 100 - 12
 
   const newH = (baseH + hShift + 360) % 360
   const newS = Math.min(90, Math.max(25, baseS + sBoost))
@@ -135,10 +141,7 @@ function makeNodeVariation(
 }
 
 // 计算每个节点的连接度（degree）
-function computeDegrees(
-  nodesArr: SimNode[],
-  linksArr: SimLink[],
-): Record<string, number> {
+function computeDegrees(nodesArr: SimNode[], linksArr: SimLink[]): Record<string, number> {
   const deg: Record<string, number> = {}
   nodesArr.forEach((n) => (deg[n.id] = 0))
   linksArr.forEach((l) => {
@@ -221,7 +224,7 @@ export default function ConceptGraph({
           }
           // 跨学科首页：轻度区分（保留学科色的主导性）
           const [h, s, l] = hexToHsl(base)
-          const hShift = ((hashStr(String(n.id)) % 1200) / 100) - 6 // ±6°
+          const hShift = (hashStr(String(n.id)) % 1200) / 100 - 6 // ±6°
           const sShift = (degree / maxDegree) * 8 - 2
           const lShift = (degree / maxDegree) * 10 - 5
           return {
@@ -366,26 +369,22 @@ export default function ConceptGraph({
 
     // 5) 通用样式内联：对所有子元素，把计算后的 CSS 关键属性写成内联 style
     //    （仅在元素本身未显式设置该 SVG 属性时做，避免覆盖 d3 的精确值）
-    const walker = document.createTreeWalker(
-      clone,
-      NodeFilter.SHOW_ELEMENT,
-      {
-        acceptNode: (node: Node) => {
-          const tag = (node as Element).tagName?.toLowerCase()
-          if (
-            tag === 'circle' ||
-            tag === 'line' ||
-            tag === 'rect' ||
-            tag === 'path' ||
-            tag === 'text' ||
-            tag === 'g'
-          ) {
-            return NodeFilter.FILTER_ACCEPT
-          }
-          return NodeFilter.FILTER_SKIP
-        },
+    const walker = document.createTreeWalker(clone, NodeFilter.SHOW_ELEMENT, {
+      acceptNode: (node: Node) => {
+        const tag = (node as Element).tagName?.toLowerCase()
+        if (
+          tag === 'circle' ||
+          tag === 'line' ||
+          tag === 'rect' ||
+          tag === 'path' ||
+          tag === 'text' ||
+          tag === 'g'
+        ) {
+          return NodeFilter.FILTER_ACCEPT
+        }
+        return NodeFilter.FILTER_SKIP
       },
-    )
+    })
     let node: Node | null = walker.nextNode()
     while (node) {
       const el = node as SVGElement
@@ -417,7 +416,10 @@ export default function ConceptGraph({
     let svgString = serializer.serializeToString(clone)
     // 保险：如果上面的 xmlns 没有被序列化出来（部分浏览器对已有元素会忽略 setAttribute 的命名空间），再手动拼
     if (!/xmlns=/.test(svgString.slice(0, 200))) {
-      svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"')
+      svgString = svgString.replace(
+        '<svg',
+        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"',
+      )
     }
 
     const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' })
@@ -541,7 +543,12 @@ export default function ConceptGraph({
 
     // 根 group：被 zoom 控制
     const gRoot = svg.append('g')
-    gRootRef.current = gRoot as unknown as d3.Selection<SVGGElement, unknown, SVGSVGElement, unknown>
+    gRootRef.current = gRoot as unknown as d3.Selection<
+      SVGGElement,
+      unknown,
+      SVGSVGElement,
+      unknown
+    >
 
     // 缩放/平移行为：滚轮缩放、拖拽平移
     const zoom = d3
@@ -559,12 +566,15 @@ export default function ConceptGraph({
     zoomBehaviorRef.current = zoom
 
     // 禁用默认双击放大（避免误触），但保留手动点击节点
-    ;(svg as unknown as d3.Selection<SVGSVGElement, unknown, HTMLElement, unknown>).on('dblclick.zoom', null)
+    ;(svg as unknown as d3.Selection<SVGSVGElement, unknown, HTMLElement, unknown>).on(
+      'dblclick.zoom',
+      null,
+    )
 
     // 复制节点数据（让 D3 可以写入 x/y/fx/fy）
     const nodesCopy: SimNode[] = nodes.map((n) => ({ ...(n as SimNode) }))
     // 构建关系数据
-    const linksCopy: SimLink[] = links.map((l) => ({ ...l } as SimLink))
+    const linksCopy: SimLink[] = links.map((l) => ({ ...l }) as SimLink)
 
     // 根据布局模式选参数：
     // - spread（默认平铺）：自然聚散，排斥力强、连线松、让节点自由分布
@@ -665,10 +675,7 @@ export default function ConceptGraph({
           .attr('r', d.radius * 1.3)
       })
       .on('mouseout', function (_event: MouseEvent, d) {
-        d3.select(this)
-          .transition()
-          .duration(200)
-          .attr('r', d.radius)
+        d3.select(this).transition().duration(200).attr('r', d.radius)
       })
 
     // 标签：热门节点显示名称
@@ -685,10 +692,34 @@ export default function ConceptGraph({
 
     simulation.on('tick', () => {
       linkElements
-        .attr('x1', (d) => clamp((d.source as SimNode)?.x ?? (d as unknown as { x1?: number }).x1 ?? 0, PAD, width - PAD))
-        .attr('y1', (d) => clamp((d.source as SimNode)?.y ?? (d as unknown as { y1?: number }).y1 ?? 0, PAD, h - PAD))
-        .attr('x2', (d) => clamp((d.target as SimNode)?.x ?? (d as unknown as { x2?: number }).x2 ?? 0, PAD, width - PAD))
-        .attr('y2', (d) => clamp((d.target as SimNode)?.y ?? (d as unknown as { y2?: number }).y2 ?? 0, PAD, h - PAD))
+        .attr('x1', (d) =>
+          clamp(
+            (d.source as SimNode)?.x ?? (d as unknown as { x1?: number }).x1 ?? 0,
+            PAD,
+            width - PAD,
+          ),
+        )
+        .attr('y1', (d) =>
+          clamp(
+            (d.source as SimNode)?.y ?? (d as unknown as { y1?: number }).y1 ?? 0,
+            PAD,
+            h - PAD,
+          ),
+        )
+        .attr('x2', (d) =>
+          clamp(
+            (d.target as SimNode)?.x ?? (d as unknown as { x2?: number }).x2 ?? 0,
+            PAD,
+            width - PAD,
+          ),
+        )
+        .attr('y2', (d) =>
+          clamp(
+            (d.target as SimNode)?.y ?? (d as unknown as { y2?: number }).y2 ?? 0,
+            PAD,
+            h - PAD,
+          ),
+        )
 
       nodeElements.attr(
         'transform',
@@ -707,36 +738,32 @@ export default function ConceptGraph({
     const svg = d3.select(svgRef.current)
     const q = searchQuery.trim().toLowerCase()
 
-    svg
-      .selectAll('.nodes > g')
-      .each(function (_, i, nodes_arr) {
-        const g = d3.select(nodes_arr[i] as SVGGElement)
-        const datum = g.datum() as SimNode
-        const isVisible = activeDisciplines.has(datum.discipline)
-        const matchSearch =
-          !q ||
-          datum.name.toLowerCase().includes(q) ||
-          (datum.translation || '').toLowerCase().includes(q)
-        const isShown = isVisible && matchSearch
+    svg.selectAll('.nodes > g').each(function (_, i, nodes_arr) {
+      const g = d3.select(nodes_arr[i] as SVGGElement)
+      const datum = g.datum() as SimNode
+      const isVisible = activeDisciplines.has(datum.discipline)
+      const matchSearch =
+        !q ||
+        datum.name.toLowerCase().includes(q) ||
+        (datum.translation || '').toLowerCase().includes(q)
+      const isShown = isVisible && matchSearch
 
-        g.style('opacity', isShown ? 1 : 0.08)
-        g.style('pointer-events', isShown ? 'auto' : 'none')
+      g.style('opacity', isShown ? 1 : 0.08)
+      g.style('pointer-events', isShown ? 'auto' : 'none')
 
-        const circle = g.select('circle')
-        if (q && matchSearch) {
-          circle.attr('stroke', '#FFB84D').attr('stroke-width', 3)
-        } else {
-          circle.attr('stroke', '#fff').attr('stroke-width', 2)
-        }
-      })
+      const circle = g.select('circle')
+      if (q && matchSearch) {
+        circle.attr('stroke', '#FFB84D').attr('stroke-width', 3)
+      } else {
+        circle.attr('stroke', '#fff').attr('stroke-width', 2)
+      }
+    })
 
     svg.selectAll('.links > line').each(function (_, i, lines_arr) {
       const l = d3.select(lines_arr[i] as SVGLineElement)
       const datum = l.datum() as SimLink
-      const srcId =
-        typeof datum.source === 'object' ? (datum.source as SimNode).id : datum.source
-      const tgtId =
-        typeof datum.target === 'object' ? (datum.target as SimNode).id : datum.target
+      const srcId = typeof datum.source === 'object' ? (datum.source as SimNode).id : datum.source
+      const tgtId = typeof datum.target === 'object' ? (datum.target as SimNode).id : datum.target
       const bothVisible = visibleNodeIds.has(srcId) && visibleNodeIds.has(tgtId)
       l.style('opacity', bothVisible ? 0.55 : 0)
     })

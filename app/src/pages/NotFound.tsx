@@ -13,9 +13,7 @@ export default function NotFound() {
       >
         <div className="text-6xl mb-4 opacity-40">🔍</div>
         <h1 className="text-4xl font-bold text-warm-dark dark:text-warm-text mb-2">404</h1>
-        <p className="text-lg text-warm-text mb-6">
-          这个页面似乎不存在，也许它从未被定义过。
-        </p>
+        <p className="text-lg text-warm-text mb-6">这个页面似乎不存在，也许它从未被定义过。</p>
         <div className="flex items-center gap-3 justify-center">
           <Link
             to="/"

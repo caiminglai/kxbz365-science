@@ -765,11 +765,14 @@ function StepCard({
       onClick={onClick}
     >
       <div className="flex items-center gap-4 p-5">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: color + '15' }}>
-            <div style={{ color }} className="flex items-center justify-center w-full h-full">
-              <Icon className="w-5 h-5" />
-            </div>
+        <div
+          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: color + '15' }}
+        >
+          <div style={{ color }} className="flex items-center justify-center w-full h-full">
+            <Icon className="w-5 h-5" />
           </div>
+        </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <span
