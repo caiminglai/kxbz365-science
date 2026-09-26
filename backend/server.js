@@ -27,6 +27,11 @@ const db = require("./db/入口");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// 只信任 Caddy 这一跳，req.ip 才会还原成访客真实地址。不设的话下面全局挂载的
+// rateLimiter 会把全网访客算成 Caddy 一个地址共用 1000 次/分钟，
+// 一旦超频还把这一个地址拉黑 1 分钟 —— 等于一个人把所有人关在门外。
+app.set("trust proxy", 1);
+
 // ===== 性能层 - 响应压缩（Gzip/Brotli，放在最外层以压缩所有响应）=====
 app.use(
   compression({
