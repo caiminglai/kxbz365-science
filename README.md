@@ -50,7 +50,7 @@ cd app && npm install --registry=https://registry.npmmirror.com && npm run dev
 # services/Meilisearch服务.js 探测不到 7700 端口时自动回退,无需任何启动步骤
 ```
 
-访问:http://localhost:3001/twym/
+访问:http://localhost:3001/
 
 ## 文档
 

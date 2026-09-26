@@ -186,7 +186,7 @@ cd app && npm install && npm run dev
 # → http://localhost:3001
 
 # 访问
-# 前端:http://localhost:3001/twym/
+# 前端:http://localhost:3001/
 # 管理后台:http://localhost:3000/admin
 ```
 
