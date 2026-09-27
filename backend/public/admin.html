@@ -965,7 +965,7 @@ async function refreshDisciplineSelect() {
       exportSelect.appendChild(option);
     });
     exportSelect.value = exportValue;
-  } catch {}
+  } catch (e) { console.error(e); }
 }
 
 // 自动登录
@@ -1021,7 +1021,7 @@ async function loadDashboard() {
       if (discData.success) {
         disciplines = discData.data.map(disc => disc.id);
       }
-    } catch {}
+    } catch (e) { console.error(e); }
 
     // 学科分布 - 按学科顺序排列
     const chart = document.getElementById('disciplineChart');
@@ -1041,7 +1041,7 @@ async function loadDashboard() {
         </div>
       </div>`;
     }).join('');
-  } catch {}
+  } catch (e) { console.error(e); }
 
   // 并行加载数据质量报告
   loadDataQuality();
@@ -1174,7 +1174,7 @@ async function loadTerms(page = 1) {
           disciplineOrder[d.id] = i;
         });
       }
-    } catch {}
+    } catch (e) { console.error(e); }
 
     // 按学科顺序排序词条
     const sortedTerms = [...termsData.data.terms].sort((a, b) => {
@@ -1213,7 +1213,7 @@ async function loadTerms(page = 1) {
       }
     }
     document.getElementById('pagination').innerHTML = pages;
-  } catch {}
+  } catch (e) { console.error(e); }
 }
 
 // ========== 编辑弹窗 ==========
@@ -1505,7 +1505,7 @@ async function deleteTerm(id) {
       loadTerms(currentPage);
       loadDashboard();
     }
-  } catch {}
+  } catch (e) { console.error(e); }
 }
 
 // ========== 历史版本 ==========
@@ -1607,7 +1607,7 @@ async function loadBackups() {
     document.getElementById('backupTable').innerHTML = backups.map(b =>
       `<tr><td>${b.name}</td><td>${(b.size / 1024).toFixed(1)} KB</td><td>${new Date(b.date).toLocaleString('zh-CN')}</td></tr>`
     ).join('') || '<tr><td colspan="3" style="text-align:center;color:#A0A0B0;padding:30px">暂无备份</td></tr>';
-  } catch {}
+  } catch (e) { console.error(e); }
 }
 
 async function doBackup() {
@@ -1885,7 +1885,7 @@ async function showSearchSuggestions() {
         </div>`;
       }).join('');
       suggestionsDiv.classList.add('show');
-    } catch {}
+    } catch (e) { console.error(e); }
   }, 300);
 }
 
@@ -2082,7 +2082,7 @@ async function deleteConceptAntibody(id) {
       showToast('删除成功', 'success');
       loadConceptAntibodies();
     }
-  } catch {}
+  } catch (e) { console.error(e); }
 }
 
 // ========== 职业解构管理 ==========
@@ -2189,7 +2189,7 @@ async function deleteCareer(id) {
       showToast('删除成功', 'success');
       loadCareerDeconstruction();
     }
-  } catch {}
+  } catch (e) { console.error(e); }
 }
 
 // ========== 岗位拆解管理 ==========
@@ -2288,7 +2288,7 @@ async function deleteIndustry(id) {
       showToast('删除成功', 'success');
       loadIndustryDeconstruction();
     }
-  } catch {}
+  } catch (e) { console.error(e); }
 }
 
 // ========== 提交审核 ==========
@@ -2380,7 +2380,7 @@ async function viewSubmissionDetail(id) {
     if (aliases.length > 0) {
       aliasesHtml = aliases.map(a => `<span class="disc-badge" style="background:#F7F5F0;margin:2px;display:inline-block">${escapeHtml(DISCIPLINE_NAMES[a.discipline] || a.discipline)}：${escapeHtml(a.name)}</span>`).join(' ');
     }
-  } catch {}
+  } catch (e) { console.error(e); }
   
   // 格式化时间
   const createdTime = submission.created_at ? new Date(submission.created_at * 1000).toLocaleString('zh-CN') : '-';
