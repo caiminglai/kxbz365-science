@@ -338,8 +338,8 @@ function 预编译(sql) {
       // 写入操作后清空缓存，确保下次读取最新数据
       标记已修改();
       return {
-        changes: 数据库实例.changes,
-        lastInsertRowid: 数据库实例.lastInsertRowid,
+        changes: 结果.changes,
+        lastInsertRowid: 结果.lastInsertRowid,
       };
     },
 

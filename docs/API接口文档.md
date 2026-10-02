@@ -941,7 +941,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 > 路由文件：`backend/routes/社区协作.js`，挂载前缀同第 12 节（`/api/v1/community`）。
 > 数据表：`词条纠错建议`（字段：`建议ID`(自增主键) / `词条ID` / `词条名称` / `纠错类型`(默认 `学科归属`) / `建议内容` / `提交者标识`(默认 `匿名`) / `状态`(默认 `待审核`) / `审核备注` / `审核时间` / `创建时间`），由 `db/入口.js` 启动期 `CREATE TABLE IF NOT EXISTS` 建表。
-> 失败响应统一为 `{ success: false, message: "..." }`（500），无 `error.code`；路由不做任何必填校验，缺字段直接落到 SQLite。
+> 失败响应分三档：400 参数不合法 `{success:false,message:"..."}`（`词条ID`≤100、`词条名称`≤200、`建议内容`≤2000 三项必填且限长，`纠错类型`≤20、`提交者标识`≤50 选填超限即拒）；429/403 触发限流 `{success:false,error:{code:"RATE_LIMITED"|"BLOCKED",message}}`（本接口独立 10 次/分钟·按 IP，超限后封 10 分钟）；500 写入失败 `{success:false,message:"提交失败，请稍后再试"}`，原始 SQLite 错误只进服务端日志、不回给匿名请求方。
 
 ### 13.1 提交纠错建议
 
