@@ -31,4 +31,8 @@ data
 dumps
 scripts
 
-# 注意：不排除 backend/.env —— 运行时 dotenv 需要它
+# backend/.env 装的是真实密钥（ADMIN_TOKEN / NEO4J_PASSWORD 等），
+# COPY backend/ ./ 会把它连镜像层一起带出去，任何拿到镜像的人都能读走。
+# 运行时 dotenv 读的是 __dirname/.env（容器内 /app/.env），
+# 而 compose 把仓库根 .env 挂在同一个路径上，镜像里那份从来没被用到——排除它不改行为。
+backend/.env
