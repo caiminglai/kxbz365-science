@@ -1,6 +1,6 @@
 const express = require('express');
 const { prepare } = require('../db/入口');
-const { adminAuth } = require('../middleware/安全');
+const { adminAuth, suggestionRateLimiter } = require('../middleware/安全');
 const router = express.Router();
 
 // ========== 学科管理 ==========
@@ -54,16 +54,41 @@ router.post('/mapping', adminAuth, (req, res) => {
 // ========== 纠错建议 ==========
 
 // 提交纠错建议
-router.post('/suggestions', (req, res) => {
+// 必填字段先校验长度再入库：这是匿名可写接口，不限不查就等于让一个人
+// 一分钟往待审核队列里塞几百条几 MB 的垃圾
+const 必填字段 = [['词条ID', 100], ['词条名称', 200], ['建议内容', 2000]];
+const 选填字段 = [['纠错类型', 20, '学科归属'], ['提交者标识', 50, '匿名']];
+
+router.post('/suggestions', suggestionRateLimiter, (req, res) => {
+  const 已验证 = {};
+  for (const [字段, 上限] of 必填字段) {
+    const 原始 = typeof req.body?.[字段] === 'number' ? String(req.body[字段]) : req.body?.[字段];
+    if (typeof 原始 !== 'string' || 原始.trim() === '') {
+      return res.status(400).json({ success: false, message: `${字段} 不能为空` });
+    }
+    if (原始.trim().length > 上限) {
+      return res.status(400).json({ success: false, message: `${字段} 超过 ${上限} 字` });
+    }
+    已验证[字段] = 原始.trim();
+  }
+  for (const [字段, 上限, 默认值] of 选填字段) {
+    const 原始 = req.body?.[字段] ?? 默认值;
+    if (typeof 原始 !== 'string' || 原始.length > 上限) {
+      return res.status(400).json({ success: false, message: `${字段} 不合法（上限 ${上限} 字）` });
+    }
+    已验证[字段] = 原始;
+  }
+
   try {
-    const { 词条ID, 词条名称, 纠错类型 = '学科归属', 建议内容, 提交者标识 = '匿名' } = req.body;
     const result = prepare(`
       INSERT INTO 词条纠错建议 (词条ID, 词条名称, 纠错类型, 建议内容, 提交者标识)
       VALUES (?, ?, ?, ?, ?)
-    `).run(词条ID, 词条名称, 纠错类型, 建议内容, 提交者标识);
+    `).run(已验证.词条ID, 已验证.词条名称, 已验证.纠错类型, 已验证.建议内容, 已验证.提交者标识);
     res.json({ success: true, message: '建议已提交，感谢您的贡献', data: { 建议ID: result.lastInsertRowid } });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    // err.message 里带着表名、列名和 SQL 片段，匿名请求方不该看到
+    console.error('[纠错建议] 写入失败:', err.message);
+    res.status(500).json({ success: false, message: '提交失败，请稍后再试' });
   }
 });
 

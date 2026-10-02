@@ -35,7 +35,7 @@ function ensureDir(dir) {
 
 /** 安全文件名（替换 Windows 不允许的字符） */
 function safeFilename(name) {
-  return name.replace(/[\\/:*?"<>|]/g, "_").trim();
+  return String(name).replace(/[\\/:*?"<>|]/g, "_").trim();
 }
 
 /** 解析 JSON 别名数组 */
@@ -51,7 +51,19 @@ function parseAliases(jsonStr) {
 
 /** 获取某条记录在 Obsidian 中的文件路径 */
 function getFilePath(subfolder, filename) {
-  return path.join(VAULT_PATH, subfolder, safeFilename(filename) + ".md");
+  // subfolder 里带着学科/分类名，这些是后台能改的库字段，可能含 ".."；
+  // 逐段清洗后再断言仍在 vault 内，否则一条改名记录就能把词条写到库外
+  const segments = String(subfolder)
+    .split(/[\\/]/)
+    .map((seg) => (seg === ".." ? "_" : safeFilename(seg)))
+    .filter((seg) => seg && seg !== ".");
+  const filePath = path.join(VAULT_PATH, ...segments, safeFilename(filename) + ".md");
+  const vaultRoot = path.resolve(VAULT_PATH);
+  const resolved = path.resolve(filePath);
+  if (resolved !== vaultRoot && !resolved.startsWith(vaultRoot + path.sep)) {
+    throw new Error(`Obsidian 路径越界，已拒绝写入: ${filePath}`);
+  }
+  return resolved;
 }
 
 /** 删除文件（如果存在） */

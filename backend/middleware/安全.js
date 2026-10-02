@@ -104,6 +104,10 @@ const searchRateLimiter = createRateLimiter(600, 60 * 1000, "search");
 // 管理接口专用：300请求/分钟
 const adminRateLimiter = createRateLimiter(300, 60 * 1000, "admin");
 
+// 匿名写入接口专用：10请求/分钟。这个端点每来一次就往库里插一行，
+// 用搜索那档 600/分钟 等于允许一个人一分钟造 600 条待审核垃圾
+const suggestionRateLimiter = createRateLimiter(10, 60 * 1000, "suggestion");
+
 // ===== 2. 安全响应头（防止信息泄露）=====
 
 function securityHeaders(req, res, next) {
@@ -221,6 +225,7 @@ module.exports = {
   createRateLimiter,
   searchRateLimiter,
   adminRateLimiter,
+  suggestionRateLimiter,
   securityHeaders,
   bodySizeLimit,
   adminAuth,
