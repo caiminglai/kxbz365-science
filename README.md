@@ -2,11 +2,16 @@
 
 跨学科概念还原库 -- 将复杂世界的专业术语翻译成人能理解的结构.
 
+**线上演示**:<https://kxbz365.cn>
+
+![科学不装首页](docs/images/home.png)
+
 ## 技术栈
 
 - 前端:React 19 + TypeScript + Vite 7 + Tailwind CSS + D3.js + Framer Motion
-- 后端:Express.js + better-sqlite3(SQLite 主库)+ Meilisearch（**未启用**,实际走 SQLite LIKE）+ OpenAI API（Neo4j 图数据库方向**已放弃**,残留代码与依赖已删除）
-- 部署:Docker Compose + Caddy（Let's Encrypt 自动续期）— 本地已整站验证;服务器将重装为 Debian + Docker 后走同一份 compose,旧栈 Nginx + PM2 作废
+- 后端:Express.js + better-sqlite3(SQLite 主库);AI 问答助手接多提供商 LLM(OpenAI / Anthropic / 通义 / 智谱,兼容 OpenAI 协议、用户自带 Key)
+- 备注:Meilisearch 客户端已装但**未启用**(实际走 SQLite LIKE);早期 Neo4j 图数据库方向**已放弃**,残留代码与依赖已删除
+- 部署:Docker Compose + Caddy（Let's Encrypt 自动续期）— 已上线 <https://kxbz365.cn>
 
 ## 目录结构
 
