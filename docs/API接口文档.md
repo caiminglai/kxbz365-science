@@ -1286,16 +1286,16 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 更多内容模块的管理接口请参考各模块路由文件：
 
-- 职业解构：[职业.js](file:///e:/website/1.my-first-website/backend/routes/职业解构.js)
-- 产业岗位：[产业.js](file:///e:/website/1.my-first-website/backend/routes/产业岗位.js)
-- 概念抗体：[抗体.js](file:///e:/website/1.my-first-website/backend/routes/概念抗体.js)
-- 高薪技术岗：[岗位.js](file:///e:/website/1.my-first-website/backend/routes/高薪技术岗.js)
+- 职业解构：[职业.js](file:///e:/website/kxbz365-science/backend/routes/职业解构.js)
+- 产业岗位：[产业.js](file:///e:/website/kxbz365-science/backend/routes/产业岗位.js)
+- 概念抗体：[抗体.js](file:///e:/website/kxbz365-science/backend/routes/概念抗体.js)
+- 高薪技术岗：[岗位.js](file:///e:/website/kxbz365-science/backend/routes/高薪技术岗.js)
 
 ---
 
 ## 19. 学科词库
 
-路由文件：[学科词库.js](file:///e:/website/1.my-first-website/backend/routes/学科词库.js)，数据源是独立库 `data/学科词库.db`（19 张按学科分表 + `总览` 视图）。
+路由文件：[学科词库.js](file:///e:/website/kxbz365-science/backend/routes/学科词库.js)，数据源是独立库 `data/学科词库.db`（19 张按学科分表 + `总览` 视图）。
 
 > 响应格式例外：本节接口**不带** `{ success, data }` 包装，直接返回裸对象，出错时是 `{ "error": "文案" }`，没有 `error.code`（见 2.1 的例外说明）。固定路径（`lookup`/`search`/`list`/`stats`/`suggestions`/`manage/*`）必须排在 `/:domain` 之前，否则会被通配段吃掉——现网顺序就是这样声明的。
 
@@ -1314,7 +1314,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ## 20. 语义词典
 
-路由文件：[语义.js](file:///e:/website/1.my-first-website/backend/routes/语义.js)，数据源是独立库 `data/语义词典.db`。全部公开只读，同样直接返回裸对象（无 `success` 包装）。
+路由文件：[语义.js](file:///e:/website/kxbz365-science/backend/routes/语义.js)，数据源是独立库 `data/语义词典.db`。全部公开只读，同样直接返回裸对象（无 `success` 包装）。
 
 | 接口 | 参数 | 说明 |
 |------|------|------|
@@ -1330,7 +1330,7 @@ GET /api/v1/terms?page=1&pageSize=20&discipline=物理学
 
 ## 21. AI 问答
 
-路由文件：[AI问答.js](file:///e:/website/1.my-first-website/backend/routes/AI问答.js)。多提供商 LLM + RAG，**不走 `x-admin-token`**：调用方在请求体里自带 `apiKey`（可选 `baseUrl`），因此鉴权口径与其他管理接口不同。
+路由文件：[AI问答.js](file:///e:/website/kxbz365-science/backend/routes/AI问答.js)。多提供商 LLM + RAG，**不走 `x-admin-token`**：调用方在请求体里自带 `apiKey`（可选 `baseUrl`），因此鉴权口径与其他管理接口不同。
 
 | 接口 | 请求体 | 说明 |
 |------|--------|------|
@@ -1409,27 +1409,27 @@ const categories = await getJobCategories()
 
 | 文件 | 挂载路径 | 说明 |
 |------|---------|------|
-| [词条.js](file:///e:/website/1.my-first-website/backend/routes/词条.js) | `/api/v1/terms` | 词条查询/搜索/CRUD |
-| [图谱.js](file:///e:/website/1.my-first-website/backend/routes/知识图谱.js) | `/api/v1/graph` | 知识图谱 nodes/links |
-| [对比.js](file:///e:/website/1.my-first-website/backend/routes/概念对比.js) | `/api/v1/comparisons` | 概念对比 |
-| [情景.js](file:///e:/website/1.my-first-website/backend/routes/情景还原.js) | `/api/v1/scenarios` | 情景还原 |
-| [职业.js](file:///e:/website/1.my-first-website/backend/routes/职业解构.js) | `/api/v1/career` | 职业解构 |
-| [产业.js](file:///e:/website/1.my-first-website/backend/routes/产业岗位.js) | `/api/v1/industry` | 产业岗位 |
-| [抗体.js](file:///e:/website/1.my-first-website/backend/routes/概念抗体.js) | `/api/v1/antibody` | 概念抗体（含 CSV 导入导出） |
-| [概念抗体公开.js](file:///e:/website/1.my-first-website/backend/routes/概念抗体公开.js) | `/api/v1/concept-antibodies` | 前台只读，白名单列 + 只回上架条目 |
-| [概念抗体管理.js](file:///e:/website/1.my-first-website/backend/routes/概念抗体管理.js) | `/api/v1/admin/concept-antibodies` | admin.html 页签；整段 `router.use(adminAuth)`，挂载必须早于通用 `/api/v1/admin` |
-| [概念抗体维护.js](file:///e:/website/1.my-first-website/backend/services/概念抗体维护.js) | —（服务层） | 上面两条路由与着陆页共用的数据访问，只补「启用开关」这一维度，不另起并行表 |
-| [岗位.js](file:///e:/website/1.my-first-website/backend/routes/高薪技术岗.js) | `/api/v1/jobs` | 高薪技术岗 |
-| [统计.js](file:///e:/website/1.my-first-website/backend/routes/统计.js) | `/api/v1/stats` | 统计 + 健康检查 + 用户反馈 |
-| [提交.js](file:///e:/website/1.my-first-website/backend/routes/用户提交.js) | `/api/v1/submissions` | 用户提交 |
-| [社区协作.js](file:///e:/website/1.my-first-website/backend/routes/社区协作.js) | `/api/v1/community` | 学科子领域映射 + 词条纠错建议（两节共用这一个文件） |
-| [学科词库.js](file:///e:/website/1.my-first-website/backend/routes/学科词库.js) | `/api/v1/domains` | 学科词库（19 张分表，独立 SQLite 库） |
-| [重载数据库.js](file:///e:/website/1.my-first-website/backend/routes/重载数据库.js) | `/api/v1/admin/reload-db` | 从磁盘重载三个库 |
-| [管理.js](file:///e:/website/1.my-first-website/backend/routes/管理.js) | `/api/v1/admin` | 词条/学科/备份/仪表盘/图谱关系 |
-| [AI.js](file:///e:/website/1.my-first-website/backend/routes/AI问答.js) | `/api/v1/ai` | AI 问答 |
-| [语义.js](file:///e:/website/1.my-first-website/backend/routes/语义.js) | `/api/v1/semantics` | 语义词典（同义/反义/简称/抽象） |
-| [着陆页.js](file:///e:/website/1.my-first-website/backend/routes/着陆页.js) | `/t` | 词条 SSR 着陆页；导出中间件本身，另挂 `转义HTML/着陆页路径/站点根/渲染页面` 等纯函数供站点文件.js 与探针复用 |
-| [站点文件.js](file:///e:/website/1.my-first-website/backend/routes/站点文件.js) | `/sitemap.xml`、`/robots.txt` | 爬虫入口；编码函数必须复用 着陆页.js 的 `着陆页路径()` |
+| [词条.js](file:///e:/website/kxbz365-science/backend/routes/词条.js) | `/api/v1/terms` | 词条查询/搜索/CRUD |
+| [图谱.js](file:///e:/website/kxbz365-science/backend/routes/知识图谱.js) | `/api/v1/graph` | 知识图谱 nodes/links |
+| [对比.js](file:///e:/website/kxbz365-science/backend/routes/概念对比.js) | `/api/v1/comparisons` | 概念对比 |
+| [情景.js](file:///e:/website/kxbz365-science/backend/routes/情景还原.js) | `/api/v1/scenarios` | 情景还原 |
+| [职业.js](file:///e:/website/kxbz365-science/backend/routes/职业解构.js) | `/api/v1/career` | 职业解构 |
+| [产业.js](file:///e:/website/kxbz365-science/backend/routes/产业岗位.js) | `/api/v1/industry` | 产业岗位 |
+| [抗体.js](file:///e:/website/kxbz365-science/backend/routes/概念抗体.js) | `/api/v1/antibody` | 概念抗体（含 CSV 导入导出） |
+| [概念抗体公开.js](file:///e:/website/kxbz365-science/backend/routes/概念抗体公开.js) | `/api/v1/concept-antibodies` | 前台只读，白名单列 + 只回上架条目 |
+| [概念抗体管理.js](file:///e:/website/kxbz365-science/backend/routes/概念抗体管理.js) | `/api/v1/admin/concept-antibodies` | admin.html 页签；整段 `router.use(adminAuth)`，挂载必须早于通用 `/api/v1/admin` |
+| [概念抗体维护.js](file:///e:/website/kxbz365-science/backend/services/概念抗体维护.js) | —（服务层） | 上面两条路由与着陆页共用的数据访问，只补「启用开关」这一维度，不另起并行表 |
+| [岗位.js](file:///e:/website/kxbz365-science/backend/routes/高薪技术岗.js) | `/api/v1/jobs` | 高薪技术岗 |
+| [统计.js](file:///e:/website/kxbz365-science/backend/routes/统计.js) | `/api/v1/stats` | 统计 + 健康检查 + 用户反馈 |
+| [提交.js](file:///e:/website/kxbz365-science/backend/routes/用户提交.js) | `/api/v1/submissions` | 用户提交 |
+| [社区协作.js](file:///e:/website/kxbz365-science/backend/routes/社区协作.js) | `/api/v1/community` | 学科子领域映射 + 词条纠错建议（两节共用这一个文件） |
+| [学科词库.js](file:///e:/website/kxbz365-science/backend/routes/学科词库.js) | `/api/v1/domains` | 学科词库（19 张分表，独立 SQLite 库） |
+| [重载数据库.js](file:///e:/website/kxbz365-science/backend/routes/重载数据库.js) | `/api/v1/admin/reload-db` | 从磁盘重载三个库 |
+| [管理.js](file:///e:/website/kxbz365-science/backend/routes/管理.js) | `/api/v1/admin` | 词条/学科/备份/仪表盘/图谱关系 |
+| [AI.js](file:///e:/website/kxbz365-science/backend/routes/AI问答.js) | `/api/v1/ai` | AI 问答 |
+| [语义.js](file:///e:/website/kxbz365-science/backend/routes/语义.js) | `/api/v1/semantics` | 语义词典（同义/反义/简称/抽象） |
+| [着陆页.js](file:///e:/website/kxbz365-science/backend/routes/着陆页.js) | `/t` | 词条 SSR 着陆页；导出中间件本身，另挂 `转义HTML/着陆页路径/站点根/渲染页面` 等纯函数供站点文件.js 与探针复用 |
+| [站点文件.js](file:///e:/website/kxbz365-science/backend/routes/站点文件.js) | `/sitemap.xml`、`/robots.txt` | 爬虫入口；编码函数必须复用 着陆页.js 的 `着陆页路径()` |
 
 > `着陆页.js` 与 `站点文件.js` 在 `server.js` 里的位置不是随便放的：必须早于 `express.static(dist)` 与 SPA 兜底，详见 22.0。
 

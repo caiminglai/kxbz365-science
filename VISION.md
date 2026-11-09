@@ -205,4 +205,4 @@ cd app && npm install && npm run dev
 
 ---
 
-*GitHub:[caiminglai/1.my-first-website](https://github.com/caiminglai/1.my-first-website)*
+*GitHub:[caiminglai/kxbz365-science](https://github.com/caiminglai/kxbz365-science)*
